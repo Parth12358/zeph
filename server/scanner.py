@@ -1,12 +1,17 @@
 import asyncio
+import os
 import re
 import socket
 import subprocess
 from datetime import datetime, timezone
 
+from dotenv import load_dotenv
+
+load_dotenv()
+
 from db import upsert_device, mark_offline_except
 
-SUBNET_PREFIX = "192.168.1"   # pings 192.168.1.1 – 192.168.1.254
+SUBNET_PREFIX = os.getenv("SUBNET_PREFIX", "192.168.1")
 SWEEP_SECS    = 30
 PING_TIMEOUT  = 300           # ms per ping
 PING_WORKERS  = 50            # concurrent pings

@@ -1,4 +1,5 @@
 import asyncio
+import os
 import subprocess
 import time
 from contextlib import asynccontextmanager
@@ -57,7 +58,7 @@ def devices():
 
 @app.get("/logs")
 def logs():
-    return {"logs": get_logs()}
+    return {"logs": get_logs(50)}
 
 @app.post("/command")
 async def command(body: dict):
@@ -97,6 +98,5 @@ def pwa_redirect():
 
 app.mount("/pwa", StaticFiles(directory="../pwa", html=True), name="pwa")
 
-import os
 if os.path.isdir("../dashboard/dist"):
     app.mount("/", StaticFiles(directory="../dashboard/dist", html=True), name="dashboard")

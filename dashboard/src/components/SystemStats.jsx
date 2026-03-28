@@ -83,6 +83,7 @@ const styles = {
     color: '#4a5568',
   },
   value: {
+    fontFamily: "'Syne', sans-serif",
     fontSize: '22px',
     fontWeight: 700,
     fontVariantNumeric: 'tabular-nums',

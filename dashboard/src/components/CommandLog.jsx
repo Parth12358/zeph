@@ -98,7 +98,7 @@ const styles = {
     letterSpacing: '0.05em',
   },
   cmd: {
-    color: '#e8edf5',
+    color: '#00d4ff',
     fontSize: '12px',
     fontFamily: "'JetBrains Mono', monospace",
     wordBreak: 'break-all',

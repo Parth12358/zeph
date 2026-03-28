@@ -9,21 +9,31 @@ export default function StatusBar({ devices }) {
   }, [])
 
   const onlineCount = devices.filter(d => d.status === 'online').length
-  const allOk = devices.length === 0 || onlineCount === devices.length
 
   return (
     <div style={styles.bar}>
-      <span style={styles.logo}>ZEPH</span>
+      {/* Left — logo + subtitle */}
+      <div style={styles.left}>
+        <span style={styles.logo}>ZEPH</span>
+        <span style={styles.subtitle}>// enterprise voice orchestrator</span>
+      </div>
 
+      {/* Center — online device count */}
       <div style={styles.center}>
         <div style={styles.pill}>
-          <span style={{ ...styles.dot, background: '#00ff88', boxShadow: '0 0 6px #00ff88' }} />
+          <span style={styles.pulseDot} />
           <span style={{ color: '#00ff88' }}>{onlineCount} online</span>
         </div>
       </div>
 
+      {/* Right — system status + clock */}
       <div style={styles.right}>
-        <span style={{ ...styles.healthDot, background: allOk ? '#00ff88' : '#ff3d5a' }} />
+        <div style={styles.statusPill}>
+          <span style={styles.statusDot} />
+          <span style={{ color: '#00ff88', fontSize: '10px', fontWeight: 700, letterSpacing: '0.1em' }}>
+            ONLINE
+          </span>
+        </div>
         <span style={styles.time}>{time}</span>
       </div>
     </div>
@@ -40,55 +50,77 @@ const styles = {
     alignItems: 'center',
     justifyContent: 'space-between',
     padding: '0 20px',
-    height: '44px',
+    height: '48px',
     background: '#0e1318',
     borderBottom: '1px solid #1a2230',
     flexShrink: 0,
   },
+  left: {
+    display: 'flex',
+    alignItems: 'baseline',
+    gap: '12px',
+  },
   logo: {
     fontFamily: "'Syne', sans-serif",
     fontWeight: 800,
-    fontSize: '18px',
+    fontSize: '20px',
     color: '#00d4ff',
-    letterSpacing: '0.15em',
+    letterSpacing: '0.2em',
+    textShadow: '0 0 12px rgba(0,212,255,0.6), 0 0 24px rgba(0,212,255,0.2)',
+  },
+  subtitle: {
+    fontSize: '10px',
+    color: '#2d3748',
+    letterSpacing: '0.05em',
   },
   center: {
     display: 'flex',
     alignItems: 'center',
-    gap: '12px',
   },
   pill: {
     display: 'flex',
     alignItems: 'center',
-    gap: '6px',
-    padding: '3px 10px',
-    background: 'rgba(0,255,136,0.08)',
-    border: '1px solid rgba(0,255,136,0.2)',
+    gap: '7px',
+    padding: '4px 12px',
+    background: 'rgba(0,255,136,0.07)',
+    border: '1px solid rgba(0,255,136,0.18)',
     borderRadius: '20px',
     fontSize: '11px',
     fontWeight: 500,
   },
-  dot: {
+  pulseDot: {
     width: '7px',
     height: '7px',
     borderRadius: '50%',
+    background: '#00ff88',
+    boxShadow: '0 0 6px #00ff88',
     display: 'inline-block',
     animation: 'pulse 2s ease-in-out infinite',
   },
   right: {
     display: 'flex',
     alignItems: 'center',
-    gap: '8px',
-    color: '#4a5568',
-    fontSize: '12px',
+    gap: '14px',
   },
-  healthDot: {
-    width: '8px',
-    height: '8px',
+  statusPill: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '6px',
+    padding: '3px 10px',
+    background: 'rgba(0,255,136,0.07)',
+    border: '1px solid rgba(0,255,136,0.18)',
+    borderRadius: '20px',
+  },
+  statusDot: {
+    width: '6px',
+    height: '6px',
     borderRadius: '50%',
+    background: '#00ff88',
     display: 'inline-block',
   },
   time: {
+    color: '#4a5568',
+    fontSize: '12px',
     fontVariantNumeric: 'tabular-nums',
   },
 }

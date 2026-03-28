@@ -1,7 +1,9 @@
 {
   "permissions": {
     "allow": [
-      "Bash(npm install:*)"
+      "Bash(npm install:*)",
+      "Bash(python -:*)",
+      "Bash(\"c:/Users/Parth Kshirsagar/PSU/yhack26/try1/zeph/server/venv/Scripts/pip.exe\" install python-dotenv)"
     ]
   }
 }

@@ -85,7 +85,7 @@ const styles = {
   },
   hostname: {
     fontWeight: 500,
-    color: '#e8edf5',
+    color: '#00d4ff',
     fontSize: '13px',
   },
   badge: {
