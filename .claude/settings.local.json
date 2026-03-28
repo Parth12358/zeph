@@ -3,7 +3,8 @@
     "allow": [
       "Bash(npm install:*)",
       "Bash(python -:*)",
-      "Bash(\"c:/Users/Parth Kshirsagar/PSU/yhack26/try1/zeph/server/venv/Scripts/pip.exe\" install python-dotenv)"
+      "Bash(\"c:/Users/Parth Kshirsagar/PSU/yhack26/try1/zeph/server/venv/Scripts/pip.exe\" install python-dotenv)",
+      "Bash(sqlite3 \"c:/Users/Parth Kshirsagar/PSU/yhack26/try1/zeph/server/zeph.db\" \"INSERT OR REPLACE INTO devices \\(hostname, ip, mac, status, last_seen\\) VALUES \\(''mock-client'', ''127.0.0.1'', ''00:00:00:00:00:00'', ''online'', datetime\\(''now''\\)\\);\")"
     ]
   }
 }

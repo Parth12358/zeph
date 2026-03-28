@@ -3,7 +3,7 @@ import os
 import subprocess
 import time
 from contextlib import asynccontextmanager
-from datetime import datetime, timezone
+
 
 import psutil
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
@@ -11,9 +11,10 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
 
-from db import init_db, get_all_devices, get_logs, insert_log
+from db import init_db, get_all_devices, get_logs
 from scanner import start_scanner
 from ollama_client import plan_workflow
+from dispatcher import dispatch_workflow
 
 
 @asynccontextmanager
@@ -64,9 +65,15 @@ def logs():
 async def command(body: dict):
     cmd  = body.get("command", "")
     plan = await asyncio.to_thread(plan_workflow, cmd)
-    ts   = datetime.now(timezone.utc).strftime("%H:%M:%S")
-    insert_log(timestamp=ts, command=cmd, target="planned", result="ok")
-    return {"received": cmd, "plan": plan, "status": "ok"}
+
+    if "error" in plan and not plan.get("workflow"):
+        return {"received": cmd, "plan": plan, "results": [], "status": "error"}
+
+    if not plan.get("workflow"):
+        return {"received": cmd, "plan": plan, "results": [], "status": "ok"}
+
+    results = await dispatch_workflow(plan.get("workflow", []))
+    return {"received": cmd, "plan": plan, "results": results, "status": "ok"}
 
 # ── WebSockets ────────────────────────────────────────────────────────────────
 
