@@ -13,7 +13,6 @@ from db import upsert_device, mark_offline_except
 
 SUBNET_PREFIX = os.getenv("SUBNET_PREFIX", "192.168.1")
 SWEEP_SECS    = 30
-PING_TIMEOUT  = 300           # ms per ping
 PING_WORKERS  = 50            # concurrent pings
 
 
@@ -29,7 +28,7 @@ async def start_scanner():
 async def _ping(ip: str) -> bool:
     """Returns True if the host responds to a single ping."""
     proc = await asyncio.create_subprocess_exec(
-        "ping", "-n", "1", "-w", str(PING_TIMEOUT), ip,
+        "ping", "-c", "1", "-W", "1", ip,
         stdout=asyncio.subprocess.DEVNULL,
         stderr=asyncio.subprocess.DEVNULL,
     )
@@ -64,15 +63,15 @@ async def _sweep():
 
 
 def _parse_arp() -> dict:
-    """Parse `arp -a` output into {ip: {mac}} on Windows."""
+    """Parse `arp -a` output into {ip: {mac}} on Linux."""
     table = {}
     try:
         out = subprocess.check_output(["arp", "-a"], text=True, timeout=5)
         for line in out.splitlines():
-            # Windows arp -a line: "  192.168.1.1          aa-bb-cc-dd-ee-ff     dynamic"
-            m = re.match(r"\s+([\d.]+)\s+([\w-]+)\s+\w+", line)
+            # Linux arp -a: "hostname (10.0.0.1) at aa:bb:cc:dd:ee:ff [ether] on wlan0"
+            m = re.match(r".+\(([\d.]+)\) at ([\w:]+)", line)
             if m:
-                ip, mac = m.group(1), m.group(2).replace("-", ":")
+                ip, mac = m.group(1), m.group(2)
                 table[ip] = {"mac": mac}
     except Exception:
         pass
