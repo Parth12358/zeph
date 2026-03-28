@@ -7,6 +7,7 @@ from datetime import datetime, timezone
 import psutil
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
 
 from db import init_db, get_all_devices, get_logs, insert_log
@@ -89,6 +90,10 @@ async def ws_logs(websocket: WebSocket):
         pass
 
 # ── Static mounts (must be last) ─────────────────────────────────────────────
+
+@app.get("/pwa")
+def pwa_redirect():
+    return RedirectResponse(url="/pwa/")
 
 app.mount("/pwa", StaticFiles(directory="../pwa", html=True), name="pwa")
 
