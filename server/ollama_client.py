@@ -10,7 +10,7 @@ SYSTEM_PROMPT = (
     "No explanation, no markdown, only JSON."
 )
 
-MODEL = "llama3"
+MODEL = "qwen3-coder:30b"
 
 
 def plan_workflow(command: str) -> dict:
