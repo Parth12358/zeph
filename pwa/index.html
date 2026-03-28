@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+
+  <!--
+    To install on iPhone:
+    1. Open Safari and go to http://<GX10-IP>:8000/pwa
+    2. Tap the Share button (box with arrow)
+    3. Tap "Add to Home Screen"
+    4. Tap "Add"
+    5. Launch Zeph from your homescreen
+  -->
+
+  <!-- PWA / iOS homescreen -->
+  <link rel="manifest" href="/pwa/manifest.json" />
+  <link rel="apple-touch-icon" href="/pwa/icon.png" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Zeph" />
+  <meta name="theme-color" content="#080b0f" />
+
+  <title>Zeph</title>
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:       #080b0f;
+      --surface:  #0f1318;
+      --border:   #1e2530;
+      --text:     #c8d0dc;
+      --muted:    #4a5568;
+      --accent:   #4f9cf9;
+      --danger:   #e05252;
+      --pulse:    #4f9cf9;
+    }
+
+    html, body {
+      height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'SF Mono', 'Fira Mono', 'Menlo', monospace;
+      font-size: 14px;
+      -webkit-font-smoothing: antialiased;
+      overscroll-behavior: none;
+    }
+
+    body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      padding: env(safe-area-inset-top, 40px) 24px env(safe-area-inset-bottom, 24px);
+      min-height: 100dvh;
+    }
+
+    /* ── Header ── */
+    header {
+      width: 100%;
+      text-align: center;
+      padding-top: 12px;
+    }
+
+    header h1 {
+      font-size: 13px;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    /* ── Response area ── */
+    #response {
+      flex: 1;
+      width: 100%;
+      margin: 24px 0;
+      padding: 16px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+      word-break: break-word;
+      color: var(--text);
+      font-size: 13px;
+      line-height: 1.6;
+      min-height: 120px;
+    }
+
+    #response.empty { color: var(--muted); }
+
+    /* ── Controls ── */
+    #controls {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+    }
+
+    /* Voice button */
+    #voice-btn {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      border: 2px solid var(--border);
+      background: var(--surface);
+      color: var(--text);
+      font-size: 28px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      user-select: none;
+      -webkit-user-select: none;
+      touch-action: none;
+      transition: border-color 0.15s, background 0.15s, transform 0.1s;
+      position: relative;
+    }
+
+    #voice-btn:active,
+    #voice-btn.listening {
+      border-color: var(--accent);
+      background: rgba(79, 156, 249, 0.12);
+      transform: scale(1.06);
+    }
+
+    #voice-btn.listening::after {
+      content: '';
+      position: absolute;
+      inset: -6px;
+      border-radius: 50%;
+      border: 2px solid var(--pulse);
+      animation: ripple 1s ease-out infinite;
+    }
+
+    @keyframes ripple {
+      0%   { opacity: 0.7; transform: scale(1); }
+      100% { opacity: 0;   transform: scale(1.5); }
+    }
+
+    #voice-btn.sent {
+      border-color: #52c48a;
+      background: rgba(82, 196, 138, 0.12);
+    }
+
+    #voice-label {
+      font-size: 11px;
+      color: var(--muted);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    /* Text row */
+    #text-row {
+      display: flex;
+      width: 100%;
+      gap: 8px;
+    }
+
+    #text-input {
+      flex: 1;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      color: var(--text);
+      font-family: inherit;
+      font-size: 14px;
+      padding: 12px 14px;
+      outline: none;
+      transition: border-color 0.15s;
+      -webkit-appearance: none;
+    }
+
+    #text-input:focus { border-color: var(--accent); }
+    #text-input::placeholder { color: var(--muted); }
+
+    #send-btn {
+      background: var(--accent);
+      border: none;
+      border-radius: 10px;
+      color: #fff;
+      font-family: inherit;
+      font-size: 13px;
+      padding: 12px 18px;
+      cursor: pointer;
+      transition: opacity 0.15s;
+      letter-spacing: 0.05em;
+    }
+
+    #send-btn:active { opacity: 0.75; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>Zeph</h1>
+  </header>
+
+  <div id="response" class="empty">awaiting input…</div>
+
+  <div id="controls">
+    <button id="voice-btn" aria-label="Hold to speak">🎙</button>
+    <span id="voice-label">hold to speak</span>
+
+    <div id="text-row">
+      <input id="text-input" type="text" placeholder="type a command…" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" />
+      <button id="send-btn">send</button>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

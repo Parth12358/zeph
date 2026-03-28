@@ -15,6 +15,15 @@ def init_db():
             last_seen TEXT
         )
     """)
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS logs (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            timestamp TEXT,
+            command TEXT,
+            target TEXT,
+            result TEXT
+        )
+    """)
     con.commit()
     con.close()
 
@@ -40,3 +49,38 @@ def get_all_devices():
     rows = cur.fetchall()
     con.close()
     return [{"hostname": r[0], "ip": r[1], "mac": r[2], "status": r[3], "last_seen": r[4]} for r in rows]
+
+def insert_log(timestamp, command, target, result):
+    con = sqlite3.connect(DB_PATH)
+    cur = con.cursor()
+    cur.execute(
+        "INSERT INTO logs (timestamp, command, target, result) VALUES (?, ?, ?, ?)",
+        (timestamp, command, target, result)
+    )
+    con.commit()
+    con.close()
+
+def mark_offline_except(ips: list):
+    con = sqlite3.connect(DB_PATH)
+    cur = con.cursor()
+    if ips:
+        placeholders = ",".join("?" * len(ips))
+        cur.execute(
+            f"UPDATE devices SET status='offline' WHERE ip NOT IN ({placeholders})",
+            ips
+        )
+    else:
+        cur.execute("UPDATE devices SET status='offline'")
+    con.commit()
+    con.close()
+
+def get_logs(limit=50):
+    con = sqlite3.connect(DB_PATH)
+    cur = con.cursor()
+    cur.execute(
+        "SELECT timestamp, command, target, result FROM logs ORDER BY id DESC LIMIT ?",
+        (limit,)
+    )
+    rows = cur.fetchall()
+    con.close()
+    return [{"timestamp": r[0], "command": r[1], "target": r[2], "result": r[3]} for r in rows]
