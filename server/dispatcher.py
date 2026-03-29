@@ -13,7 +13,7 @@ async def resolve_targets(target: str, action: str, command: str) -> list:
         return [target]
 
     # Broadcast to all named (known) devices
-    if target == "all":
+    if target in ("all", "server"):
         from db import get_named_devices
         devices = get_named_devices()
         return [d["ip"] for d in devices]
@@ -38,6 +38,18 @@ async def dispatch_one(
     # Stubs — no HTTP, force target to "lights"
     if action in ("gpio", "lights") or ip == "lights":
         return {"target": "lights", "action": action, "command": command, "status": "stub", "output": "gpio not yet implemented", "error": None}
+
+    # Summarize — GET localhost, not a client POST
+    if action == "summarize":
+        timeout = aiohttp.ClientTimeout(total=60)
+        try:
+            async with session.get("http://localhost:8000/notes/summarize", timeout=timeout) as resp:
+                output = await resp.text()
+                return {"target": ip, "action": action, "command": command, "status": "ok", "output": output, "error": None}
+        except asyncio.TimeoutError:
+            return {"target": ip, "action": action, "command": command, "status": "error", "output": None, "error": "timeout"}
+        except Exception as exc:
+            return {"target": ip, "action": action, "command": command, "status": "error", "output": None, "error": str(exc)}
 
     action_map = {
         "bash":     (f"http://{ip}:5000/bash",     {"command": command}),
@@ -100,7 +112,7 @@ async def dispatch_workflow(workflow: list) -> list:
         )
 
     now = datetime.now().strftime("%H:%M:%S")
-    endpoint_map = {"bash": "/bash", "hyprctl": "/dispatch", "airdrop": "/airdrop", "gpio": "/gpio", "notes": "/notes"}
+    endpoint_map = {"bash": "/bash", "hyprctl": "/dispatch", "airdrop": "/airdrop", "gpio": "/gpio", "notes": "/notes", "summarize": "/notes/summarize"}
     for r in results:
         endpoint = endpoint_map.get(r["action"], "/dispatch")
         details = r.get("output") or r.get("error") or ""
