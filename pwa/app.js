@@ -16,17 +16,20 @@ if (SpeechRecognition) {
   recognition.lang = 'en-US';
 
   recognition.onresult = (e) => {
+    listening = false;
     const transcript = e.results[0][0].transcript;
     textInput.value = transcript;
     sendCommand(transcript);
   };
 
   recognition.onerror = (e) => {
+    listening = false;
     showResponse(`speech error: ${e.error}`, true);
     setVoiceIdle();
   };
 
   recognition.onend = () => {
+    listening = false;
     setVoiceIdle();
   };
 } else {
@@ -41,42 +44,36 @@ if (SpeechRecognition) {
 function setVoiceListening() {
   voiceBtn.classList.add('listening');
   voiceBtn.classList.remove('sent');
-  voiceLabel.textContent = 'listening…';
+  voiceLabel.textContent = 'TAP TO STOP';
 }
 
 function setVoiceSent() {
   voiceBtn.classList.remove('listening');
   voiceBtn.classList.add('sent');
-  voiceLabel.textContent = 'sent';
+  voiceLabel.textContent = 'SENT';
   setTimeout(setVoiceIdle, 1000);
 }
 
 function setVoiceIdle() {
   voiceBtn.classList.remove('listening', 'sent');
-  voiceLabel.textContent = 'hold to speak';
+  voiceLabel.textContent = 'TAP TO SPEAK';
 }
 
-// ── Voice button events ───────────────────────────────────────────────────────
-function startListening() {
+// ── Voice button toggle ───────────────────────────────────────────────────────
+let listening = false;
+
+voiceBtn.addEventListener('click', () => {
   if (!recognition) return;
-  try {
+  if (!listening) {
+    listening = true;
     recognition.start();
     setVoiceListening();
-  } catch (_) {
-    // already started — ignore
+  } else {
+    listening = false;
+    recognition.stop();
+    setVoiceIdle();
   }
-}
-
-function stopListening() {
-  if (!recognition) return;
-  recognition.stop();
-}
-
-voiceBtn.addEventListener('mousedown',  (e) => { e.preventDefault(); startListening(); });
-voiceBtn.addEventListener('touchstart', (e) => { e.preventDefault(); startListening(); }, { passive: false });
-voiceBtn.addEventListener('mouseup',    stopListening);
-voiceBtn.addEventListener('touchend',   stopListening);
-voiceBtn.addEventListener('mouseleave', stopListening);
+});
 
 // ── Text send ─────────────────────────────────────────────────────────────────
 sendBtn.addEventListener('click', () => {
