@@ -17,6 +17,11 @@ STRICT RULES — follow these exactly:
 - If the target is unknown use "all".
 - For adding notes always use action "notes" with the note text as the command value.
 - Never use bash echo or file redirection for notes.
+- For opening multiple apps on the same workspace use action "multi" with apps as a comma-separated list in the command field.alacritty
+- For multi action, order apps by importance — the first app in the list will occupy the largest area on the workspace. Put the most important app first.
+- Maximum 4 apps per multi action.
+- For notes use "nano ~/Documents/notes.md" not just "nano".
+- App names: librewolf, alacritty, code-oss, nano ~/Documents/notes.md
 
 EXAMPLES:
 
@@ -33,7 +38,7 @@ User: "turn on the lights"
 {"workflow":[{"target":"lights","action":"gpio","command":"on"}]}
 
 User: "open a terminal on all machines"
-{"workflow":[{"target":"all","action":"hyprctl","command":"exec kitty"}]}
+{"workflow":[{"target":"all","action":"hyprctl","command":"exec alacritty"}]}
 
 User: "open this specific video https://youtube.com/watch?v=abc123 on all machines"
 {"workflow":[{"target":"all","action":"bash","command":"librewolf https://youtube.com/watch?v=abc123"}]}
@@ -48,7 +53,22 @@ User: "summarize notes"
 {"workflow":[{"target":"server","action":"summarize","command":"notes"}]}
 
 User: "note that the meeting is at 3pm"
-{"workflow":[{"target":"all","action":"notes","command":"Meeting at 3pm"}]}\
+{"workflow":[{"target":"all","action":"notes","command":"Meeting at 3pm"}]}
+
+User: "open notes and browser on arch"
+{"workflow":[{"target":"10.0.0.214","action":"multi","command":"nano ~/Documents/notes.md,librewolf"}]}
+
+User: "open code and terminal on arch"
+{"workflow":[{"target":"10.0.0.214","action":"multi","command":"code-oss,alacritty"}]}
+
+User: "open browser and terminal on arch"
+{"workflow":[{"target":"10.0.0.214","action":"multi","command":"librewolf,alacritty"}]}
+
+User: "open code terminal and browser on arch"
+{"workflow":[{"target":"10.0.0.214","action":"multi","command":"code-oss,alacritty,librewolf"}]}
+
+User: "open everything on arch"
+{"workflow":[{"target":"10.0.0.214","action":"multi","command":"nano ~/Documents/notes.md,librewolf,alacritty,code-oss"}]}\
 """
 
 MODEL = "qwen3-coder:30b"

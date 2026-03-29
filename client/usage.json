@@ -1,12 +1,12 @@
 {
   "apps": {
     "librewolf": {
-      "count": 22,
-      "last_opened": "2026-03-29 02:16:36",
+      "count": 28,
+      "last_opened": "2026-03-29 03:01:16",
       "workspaces": {
-        "5": 13,
+        "5": 18,
         "4": 8,
-        "6": 1
+        "6": 2
       },
       "last_workspace": 5
     },
@@ -17,6 +17,39 @@
         "4": 1
       },
       "last_workspace": 4
+    },
+    "nano": {
+      "count": 4,
+      "last_opened": "2026-03-29 03:01:16",
+      "workspaces": {
+        "5": 3,
+        "6": 1
+      },
+      "last_workspace": 5
+    },
+    "code-oss": {
+      "count": 3,
+      "last_opened": "2026-03-29 03:01:16",
+      "workspaces": {
+        "5": 3
+      },
+      "last_workspace": 5
+    },
+    "alacritty": {
+      "count": 1,
+      "last_opened": "2026-03-29 02:59:12",
+      "workspaces": {
+        "5": 1
+      },
+      "last_workspace": 5
+    },
+    "kitty": {
+      "count": 1,
+      "last_opened": "2026-03-29 03:01:16",
+      "workspaces": {
+        "5": 1
+      },
+      "last_workspace": 5
     }
   },
   "recent_workspaces": [
@@ -29,7 +62,7 @@
     5,
     5,
     5,
-    4
+    6
   ],
-  "last_updated": "2026-03-29 02:16:36"
+  "last_updated": "2026-03-29 03:01:16"
 }

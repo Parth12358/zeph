@@ -1,9 +1,10 @@
 import os
 import subprocess
+import threading
 import time
 from datetime import datetime
 from flask import Flask, request, jsonify
-from placer import get_best_workspace
+from placer import get_best_workspace, open_multi
 from whitelist import HYPRCTL_DISPATCH, BASH_PREFIXES
 from tracker import record_open, record_placement, get_context
 from notes import append_note, read_notes, get_machine_name
@@ -95,6 +96,43 @@ def dispatch():
     except Exception as e:
         log(f"[dispatch] Status: error ({e})")
         return jsonify({"status": "error", "error": str(e)})
+
+
+MULTI_ALLOWED = {"librewolf", "alacritty", "kitty", "nano", "code-oss", "xdg-open"}
+
+
+@app.route("/multi", methods=["POST"])
+def multi():
+    data = request.get_json(silent=True)
+    if not data or "command" not in data:
+        log("[multi] Error: invalid request")
+        return jsonify({"status": "error", "error": "invalid request"}), 400
+
+    command = data["command"]
+    log(f"[multi] Received: {command}")
+
+    apps = [a.strip() for a in command.split(",")]
+    apps = [a for a in apps if a]
+    apps = apps[:4]
+
+    for app_str in apps:
+        first_word = app_str.split()[0] if app_str.split() else ""
+        if first_word not in MULTI_ALLOWED:
+            log(f"[multi] Error: app not allowed: {first_word}")
+            return jsonify({"status": "error", "error": f"app not allowed: {first_word}"}), 403
+
+    log(f"[multi] Opening {len(apps)} apps on new workspace")
+    for app_str in apps:
+        args = app_str.split()
+        if args[0] == "librewolf" and "--new-window" not in args:
+            args.insert(1, "--new-window")
+        log(f"[multi] → {' '.join(args)}")
+    log(f"[multi] Tiling {len(apps)} apps")
+
+    threading.Thread(target=open_multi, args=(apps,), daemon=True).start()
+
+    log("[multi] Done")
+    return jsonify({"status": "ok", "output": f"opening {len(apps)} apps on new workspace"})
 
 
 @app.route("/context", methods=["GET"])
