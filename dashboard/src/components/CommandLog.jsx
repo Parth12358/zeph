@@ -1,18 +1,30 @@
+import { useState } from 'react'
+
 export default function CommandLog({ logs }) {
-  const entries = [...logs].reverse()
+  const [sortOrder, setSortOrder] = useState('newest')
+
+  const sortedLogs = sortOrder === 'newest' ? [...logs].reverse() : [...logs]
 
   return (
     <div style={styles.panel}>
       <div style={styles.header}>
         <span style={styles.headerTitle}>COMMAND LOG</span>
-        <span style={styles.count}>{logs.length}</span>
+        <div style={styles.headerRight}>
+          <button
+            style={styles.sortBtn}
+            onClick={() => setSortOrder(s => s === 'newest' ? 'oldest' : 'newest')}
+          >
+            {sortOrder === 'newest' ? 'NEWEST FIRST' : 'OLDEST FIRST'}
+          </button>
+          <span style={styles.count}>{logs.length}</span>
+        </div>
       </div>
 
       <div style={styles.list}>
-        {entries.length === 0 ? (
+        {sortedLogs.length === 0 ? (
           <div style={styles.empty}>no commands yet</div>
         ) : (
-          entries.map((entry, i) => <LogRow key={i} entry={entry} />)
+          sortedLogs.map((entry, i) => <LogRow key={i} entry={entry} />)
         )}
       </div>
     </div>
@@ -21,15 +33,20 @@ export default function CommandLog({ logs }) {
 
 function LogRow({ entry }) {
   const ok = entry.result === 'ok'
-  const details = entry.details ? entry.details.slice(0, 80) : null
+  const details = entry.details ? entry.details.slice(0, 100) : null
+  const hasMethodInfo = entry.method || entry.endpoint
 
   return (
     <div style={styles.row}>
       <div style={styles.meta}>
         <span style={styles.ts}>{entry.timestamp}</span>
-        {entry.method && <span style={styles.method}>{entry.method}</span>}
-        {entry.endpoint && <span style={styles.endpoint}>{entry.endpoint}</span>}
-        {entry.endpoint && <span style={styles.arrow}>→</span>}
+        {hasMethodInfo ? (
+          <>
+            {entry.method && <span style={styles.method}>{entry.method}</span>}
+            {entry.endpoint && <span style={styles.endpoint}>{entry.endpoint}</span>}
+            {entry.endpoint && <span style={styles.arrow}>→</span>}
+          </>
+        ) : null}
         <span style={styles.target}>{entry.target}</span>
         <span style={{ ...styles.result, color: ok ? '#00ff88' : '#ff3d5a' }}>
           {ok ? 'OK' : 'ERR'}
@@ -62,6 +79,22 @@ const styles = {
     fontWeight: 700,
     letterSpacing: '0.2em',
     color: '#4a5568',
+  },
+  headerRight: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '10px',
+  },
+  sortBtn: {
+    background: 'transparent',
+    border: '1px solid #1a2230',
+    borderRadius: '3px',
+    color: '#4a5568',
+    fontSize: '9px',
+    fontWeight: 700,
+    letterSpacing: '0.1em',
+    padding: '2px 7px',
+    cursor: 'pointer',
   },
   count: {
     fontSize: '11px',
@@ -125,13 +158,14 @@ const styles = {
     fontSize: '12px',
     fontFamily: "'JetBrains Mono', monospace",
     wordBreak: 'break-all',
-    paddingLeft: '8px',
+    paddingLeft: '10px',
+    borderLeft: '2px solid #00d4ff22',
   },
   details: {
     color: '#4a5568',
     fontSize: '11px',
     fontFamily: "'JetBrains Mono', monospace",
-    paddingLeft: '8px',
+    paddingLeft: '10px',
     marginTop: '2px',
     overflow: 'hidden',
     textOverflow: 'ellipsis',

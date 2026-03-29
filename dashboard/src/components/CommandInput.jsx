@@ -17,8 +17,8 @@ export default function CommandInput() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ command: cmd }),
       })
-      const data = await res.json()
-      setFeedback({ msg: JSON.stringify(data), ok: true })
+      await res.json()
+      setFeedback({ msg: 'dispatched', ok: true })
     } catch (err) {
       setFeedback({ msg: `error: ${err.message}`, ok: false })
     }

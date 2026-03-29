@@ -1,3 +1,4 @@
+import os
 import subprocess
 import time
 from datetime import datetime
@@ -45,7 +46,13 @@ def bash():
     log(f"Executing: {args}")
 
     try:
-        subprocess.Popen(args)
+        env = os.environ.copy()
+        # Ensure Wayland/X11 display vars are present for GUI apps
+        for var in ("WAYLAND_DISPLAY", "DISPLAY", "XDG_RUNTIME_DIR", "HYPRLAND_INSTANCE_SIGNATURE", "DBUS_SESSION_BUS_ADDRESS"):
+            val = os.environ.get(var)
+            if val:
+                env[var] = val
+        subprocess.Popen(args, env=env)
         app_name = args[0]
         record_open(app_name)
         record_placement(app_name, workspace_id)
