@@ -13,6 +13,22 @@ SYSTEM_PROMPT = (
 MODEL = "qwen3-coder:30b"
 
 
+def summarize_notes(notes: str) -> str:
+    try:
+        prompt = (
+            "You are Zeph. Summarize the following notes from multiple machines into a clear, "
+            "concise summary. Group by topic if possible. Return plain text only.\n\n"
+            f"NOTES:\n{notes}"
+        )
+        response = ollama.chat(
+            model=MODEL,
+            messages=[{"role": "user", "content": prompt}],
+        )
+        return response["message"]["content"].strip()
+    except Exception:
+        return "Could not summarize notes."
+
+
 def plan_workflow(command: str) -> dict:
     try:
         response = ollama.chat(

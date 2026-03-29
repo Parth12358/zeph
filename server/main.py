@@ -4,6 +4,8 @@ import subprocess
 import time
 from contextlib import asynccontextmanager
 
+import aiohttp
+
 
 import psutil
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
@@ -13,7 +15,7 @@ from fastapi.staticfiles import StaticFiles
 
 from db import init_db, get_all_devices, get_logs, update_device_meta
 from scanner import start_scanner
-from ollama_client import plan_workflow
+from ollama_client import plan_workflow, summarize_notes
 from dispatcher import dispatch_workflow
 
 
@@ -69,6 +71,74 @@ async def update_device(ip: str, body: dict):
         return {"status": "error", "error": "invalid request"}, 400
     update_device_meta(ip, friendly_name, device_type)
     return {"status": "ok"}
+
+@app.post("/notes/append")
+async def notes_append(body: dict):
+    text = body.get("text")
+    targets = body.get("targets", ["all"])
+    if not text:
+        return {"status": "error", "error": "invalid request"}
+
+    devices = get_all_devices()
+    if "all" in targets:
+        ips = [d["ip"] for d in devices if d["status"] == "online"]
+    else:
+        ips = [d["ip"] for d in devices if d["ip"] in targets or d["hostname"] in targets]
+
+    timeout = aiohttp.ClientTimeout(total=10)
+    results = []
+
+    async def post_note(session, ip):
+        try:
+            async with session.post(f"http://{ip}:5000/notes", json={"text": text}, timeout=timeout) as resp:
+                await resp.text()
+                return {"target": ip, "status": "ok"}
+        except asyncio.TimeoutError:
+            return {"target": ip, "status": "error", "error": "timeout"}
+        except Exception as e:
+            return {"target": ip, "status": "error", "error": str(e)}
+
+    async with aiohttp.ClientSession() as session:
+        results = await asyncio.gather(*(post_note(session, ip) for ip in ips))
+
+    return {"status": "ok", "results": list(results)}
+
+
+@app.get("/notes/collect")
+async def notes_collect():
+    devices = get_all_devices()
+    online = [d["ip"] for d in devices if d["status"] == "online"]
+    timeout = aiohttp.ClientTimeout(total=10)
+    notes = {}
+
+    async def fetch_notes(session, ip):
+        try:
+            async with session.get(f"http://{ip}:5000/notes", timeout=timeout) as resp:
+                data = await resp.json()
+                return ip, data.get("notes", "")
+        except Exception:
+            return ip, ""
+
+    async with aiohttp.ClientSession() as session:
+        results = await asyncio.gather(*(fetch_notes(session, ip) for ip in online))
+
+    for ip, content in results:
+        notes[ip] = content
+
+    return {"status": "ok", "notes": notes}
+
+
+@app.get("/notes/summarize")
+async def notes_summarize():
+    collected = await notes_collect()
+    all_notes = "\n\n".join(
+        f"=== {ip} ===\n{content}"
+        for ip, content in collected["notes"].items()
+        if content
+    )
+    summary = await asyncio.to_thread(summarize_notes, all_notes)
+    return {"status": "ok", "summary": summary}
+
 
 @app.post("/command")
 async def command(body: dict):

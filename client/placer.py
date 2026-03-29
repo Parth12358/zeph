@@ -2,6 +2,7 @@ import json
 import subprocess
 import time
 from datetime import datetime
+from tracker import record_placement
 
 
 def log(message):
@@ -56,8 +57,11 @@ def get_workspace_state() -> dict:
 
 
 def find_best_workspace(state: dict) -> int:
-    best = min(range(1, 11), key=lambda ws: state.get(ws, 0))
-    return best
+    empty = [ws for ws, count in state.items() if count == 0]
+    if empty:
+        return min(empty)
+    # Fallback — least occupied workspace
+    return min(state, key=lambda ws: state[ws])
 
 
 def place_window(window: dict, workspace_id: int, current_count: int):
@@ -101,6 +105,10 @@ def smart_place(app_name: str):
 
     workspace_id = find_best_workspace(state)
     current_count = state.get(workspace_id, 0)
-    log(f"best workspace: {workspace_id} ({current_count} windows)")
+    if current_count == 0:
+        log(f"selected empty workspace: {workspace_id}")
+    else:
+        log(f"no empty workspace found, using least occupied: {workspace_id} ({current_count} windows)")
 
     place_window(window, workspace_id, current_count)
+    record_placement(app_name, workspace_id)
