@@ -1,59 +1,125 @@
-import { useState } from 'react'
+import { useEffect, useRef } from 'react'
 
-export default function CommandLog({ logs }) {
-  const [sortOrder, setSortOrder] = useState('newest')
+export default function CommandLog({ messages, onClear }) {
+  const bottomRef = useRef(null)
 
-  const sortedLogs = sortOrder === 'newest' ? [...logs].reverse() : [...logs]
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }, [messages])
 
   return (
     <div style={styles.panel}>
       <div style={styles.header}>
-        <span style={styles.headerTitle}>COMMAND LOG</span>
-        <div style={styles.headerRight}>
-          <button
-            style={styles.sortBtn}
-            onClick={() => setSortOrder(s => s === 'newest' ? 'oldest' : 'newest')}
-          >
-            {sortOrder === 'newest' ? 'NEWEST FIRST' : 'OLDEST FIRST'}
-          </button>
-          <span style={styles.count}>{logs.length}</span>
-        </div>
+        <span style={styles.headerTitle}>ZEPH CHAT</span>
+        <button style={styles.clearBtn} onClick={onClear}>CLEAR</button>
       </div>
 
       <div style={styles.list}>
-        {sortedLogs.length === 0 ? (
-          <div style={styles.empty}>no commands yet</div>
+        {messages.length === 0 ? (
+          <div style={styles.empty}>// no commands yet</div>
         ) : (
-          sortedLogs.map((entry, i) => <LogRow key={i} entry={entry} />)
+          messages.map(msg =>
+            msg.type === 'user'
+              ? <UserMessage key={msg.id} msg={msg} />
+              : <ZephMessage key={msg.id} msg={msg} />
+          )
         )}
+        <div ref={bottomRef} />
       </div>
     </div>
   )
 }
 
-function LogRow({ entry }) {
-  const ok = entry.result === 'ok'
-  const details = entry.details ? entry.details.slice(0, 100) : null
-  const hasMethodInfo = entry.method || entry.endpoint
+function UserMessage({ msg }) {
+  return (
+    <div style={styles.userRow}>
+      <div style={styles.userBubble}>
+        <span style={styles.userText}>{msg.text}</span>
+        <span style={styles.userTs}>{msg.timestamp}</span>
+      </div>
+    </div>
+  )
+}
+
+function ZephMessage({ msg }) {
+  const { response } = msg
+
+  let content
+  if (!response) {
+    content = <div style={styles.zephError}>No response</div>
+  } else if (response.error) {
+    content = <div style={styles.zephError}>Planning failed: {response.error}</div>
+  } else {
+    const plan = response.plan
+    const results = response.results || []
+
+    const workflowLines = plan?.workflow?.map((item, i) => (
+      <div key={i} style={styles.planItem}>
+        <span style={styles.arrow}>→</span>
+        <span style={styles.planAction}>{item.action}</span>
+        <span style={styles.planColon}>: </span>
+        <span style={styles.planCmd}>{item.command}</span>
+        {item.target && (
+          <div style={styles.planTarget}>
+            {'  '}target: {item.friendly_name ? `${item.friendly_name} (${item.target})` : item.target}
+          </div>
+        )}
+      </div>
+    )) ?? []
+
+    const okCount = results.filter(r => r.status === 'ok').length
+    const total = results.length
+
+    content = (
+      <>
+        {workflowLines.length > 0 && (
+          <>
+            <div style={styles.sectionLabel}>Planning workflow...</div>
+            {workflowLines}
+          </>
+        )}
+
+        {results.length > 0 && (
+          <>
+            <div style={styles.sectionLabel}>Dispatching...</div>
+            {results.map((r, i) => {
+              const ok = r.status === 'ok'
+              const label = r.friendly_name ? `${r.ip} (${r.friendly_name})` : r.ip
+              return (
+                <div key={i} style={styles.resultItem}>
+                  <span style={styles.arrow}>→</span>
+                  <span style={styles.resultIp}>{label}</span>
+                  <span style={styles.resultEndpoint}>  POST /{r.action ?? r.endpoint ?? 'bash'}  </span>
+                  <span style={{ color: ok ? '#00ff88' : '#ff3d5a', fontWeight: 700 }}>
+                    {ok ? '✓ ok' : `✗ ${r.error ?? 'error'}`}
+                  </span>
+                </div>
+              )
+            })}
+            <div style={styles.summary}>
+              Done. {okCount}/{total} actions completed.
+            </div>
+          </>
+        )}
+
+        {results.length === 0 && workflowLines.length === 0 && (
+          <div style={styles.zephMuted}>No targets dispatched.</div>
+        )}
+
+        {results.length === 0 && workflowLines.length > 0 && (
+          <div style={styles.zephMuted}>No targets dispatched.</div>
+        )}
+      </>
+    )
+  }
 
   return (
-    <div style={styles.row}>
-      <div style={styles.meta}>
-        <span style={styles.ts}>{entry.timestamp}</span>
-        {hasMethodInfo ? (
-          <>
-            {entry.method && <span style={styles.method}>{entry.method}</span>}
-            {entry.endpoint && <span style={styles.endpoint}>{entry.endpoint}</span>}
-            {entry.endpoint && <span style={styles.arrow}>→</span>}
-          </>
-        ) : null}
-        <span style={styles.target}>{entry.target}</span>
-        <span style={{ ...styles.result, color: ok ? '#00ff88' : '#ff3d5a' }}>
-          {ok ? 'OK' : 'ERR'}
-        </span>
+    <div style={styles.zephRow}>
+      <div style={styles.zephHeader}>
+        <span style={styles.zephName}>Zeph</span>
+        <span style={styles.zephTs}>{msg.timestamp}</span>
       </div>
-      <div style={styles.cmd}>{entry.command}</div>
-      {details && <div style={styles.details}>{details}</div>}
+      <div style={styles.zephBody}>{content}</div>
     </div>
   )
 }
@@ -80,12 +146,7 @@ const styles = {
     letterSpacing: '0.2em',
     color: '#4a5568',
   },
-  headerRight: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '10px',
-  },
-  sortBtn: {
+  clearBtn: {
     background: 'transparent',
     border: '1px solid #1a2230',
     borderRadius: '3px',
@@ -96,79 +157,118 @@ const styles = {
     padding: '2px 7px',
     cursor: 'pointer',
   },
-  count: {
-    fontSize: '11px',
-    color: '#00d4ff',
-    fontWeight: 700,
-  },
   list: {
     flex: 1,
     overflowY: 'auto',
-    padding: '8px 0',
+    padding: '12px 0',
   },
   empty: {
     padding: '20px 16px',
-    color: '#4a5568',
+    color: '#2d3748',
     fontSize: '12px',
+    fontFamily: "'JetBrains Mono', monospace",
   },
-  row: {
-    padding: '8px 16px',
+
+  // User message
+  userRow: {
+    display: 'flex',
+    justifyContent: 'flex-end',
+    padding: '6px 16px',
+  },
+  userBubble: {
+    display: 'flex',
+    alignItems: 'baseline',
+    gap: '10px',
+  },
+  userText: {
+    color: '#00d4ff',
+    fontSize: '13px',
+    fontFamily: "'JetBrains Mono', monospace",
+  },
+  userTs: {
+    color: '#2d3748',
+    fontSize: '10px',
+    fontVariantNumeric: 'tabular-nums',
+  },
+
+  // Zeph message
+  zephRow: {
+    padding: '10px 16px',
     borderBottom: '1px solid #0e1318',
   },
-  meta: {
+  zephHeader: {
     display: 'flex',
-    gap: '6px',
-    alignItems: 'center',
-    marginBottom: '3px',
-    flexWrap: 'wrap',
+    alignItems: 'baseline',
+    gap: '10px',
+    marginBottom: '6px',
   },
-  ts: {
-    color: '#2d3748',
+  zephName: {
+    color: '#00ff88',
     fontSize: '11px',
-    fontVariantNumeric: 'tabular-nums',
-  },
-  method: {
-    color: '#00d4ff',
-    fontSize: '10px',
     fontWeight: 700,
     letterSpacing: '0.05em',
   },
-  endpoint: {
+  zephTs: {
+    color: '#2d3748',
+    fontSize: '10px',
+    fontVariantNumeric: 'tabular-nums',
+  },
+  zephBody: {
+    fontFamily: "'JetBrains Mono', monospace",
+    fontSize: '12px',
+    paddingLeft: '4px',
+  },
+  sectionLabel: {
     color: '#4a5568',
     fontSize: '11px',
-    fontFamily: "'JetBrains Mono', monospace",
+    marginBottom: '3px',
+    marginTop: '4px',
+  },
+  planItem: {
+    color: '#e2e8f0',
+    paddingLeft: '2px',
+    marginBottom: '2px',
+  },
+  planTarget: {
+    color: '#4a5568',
+    fontSize: '11px',
+    paddingLeft: '14px',
   },
   arrow: {
-    color: '#2d3748',
-    fontSize: '11px',
-  },
-  target: {
     color: '#00d4ff',
-    fontSize: '11px',
-    flex: 1,
-    fontVariantNumeric: 'tabular-nums',
+    marginRight: '6px',
   },
-  result: {
-    fontSize: '10px',
-    fontWeight: 700,
-    letterSpacing: '0.05em',
-  },
-  cmd: {
+  planAction: {
     color: '#e2e8f0',
-    fontSize: '12px',
-    fontFamily: "'JetBrains Mono', monospace",
-    wordBreak: 'break-all',
-    paddingLeft: '10px',
-    borderLeft: '2px solid #00d4ff22',
   },
-  details: {
+  planColon: {
+    color: '#4a5568',
+  },
+  planCmd: {
+    color: '#e2e8f0',
+  },
+  resultItem: {
+    paddingLeft: '2px',
+    marginBottom: '2px',
+    fontSize: '12px',
+  },
+  resultIp: {
+    color: '#e2e8f0',
+  },
+  resultEndpoint: {
+    color: '#4a5568',
+  },
+  summary: {
+    color: '#a0aec0',
+    fontSize: '11px',
+    marginTop: '6px',
+  },
+  zephMuted: {
     color: '#4a5568',
     fontSize: '11px',
-    fontFamily: "'JetBrains Mono', monospace",
-    paddingLeft: '10px',
-    marginTop: '2px',
-    overflow: 'hidden',
-    textOverflow: 'ellipsis',
-    whiteSpace: 'nowrap',
+  },
+  zephError: {
+    color: '#ff3d5a',
+    fontSize: '12px',
   },
 }

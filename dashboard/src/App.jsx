@@ -13,9 +13,12 @@ function wsUrl(path) {
 }
 
 export default function App() {
-  const [devices, setDevices] = useState([])
-  const [logs,    setLogs]    = useState([])
-  const [stats,   setStats]   = useState({ cpu: 0, ram: 0, gpu: 0, uptime: 0 })
+  const [devices,  setDevices]  = useState([])
+  const [messages, setMessages] = useState([])
+  const [stats,    setStats]    = useState({ cpu: 0, ram: 0, gpu: 0, uptime: 0 })
+
+  const addMessage  = (msg) => setMessages(prev => [...prev, { ...msg, id: Date.now() }])
+  const clearMessages = () => setMessages([])
 
   // WebSocket — devices
   useEffect(() => {
@@ -25,25 +28,6 @@ export default function App() {
     const connect = () => {
       ws = new WebSocket(wsUrl('/ws/devices'))
       ws.onmessage = (e) => setDevices(JSON.parse(e.data))
-      ws.onclose   = ()  => { retryId = setTimeout(connect, 3000) }
-      ws.onerror   = ()  => ws.close()
-    }
-
-    connect()
-    return () => {
-      clearTimeout(retryId)
-      ws?.close()
-    }
-  }, [])
-
-  // WebSocket — logs
-  useEffect(() => {
-    let ws
-    let retryId
-
-    const connect = () => {
-      ws = new WebSocket(wsUrl('/ws/logs'))
-      ws.onmessage = (e) => setLogs(JSON.parse(e.data))
       ws.onclose   = ()  => { retryId = setTimeout(connect, 3000) }
       ws.onerror   = ()  => ws.close()
     }
@@ -81,8 +65,8 @@ export default function App() {
         </aside>
 
         <main style={styles.center}>
-          <CommandLog logs={logs} />
-          <CommandInput />
+          <CommandLog messages={messages} onClear={clearMessages} />
+          <CommandInput onMessage={addMessage} />
         </main>
 
         <aside style={styles.panel}>

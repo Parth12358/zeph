@@ -1,29 +1,30 @@
 import { useState, useRef } from 'react'
 
-export default function CommandInput() {
-  const [text,     setText]     = useState('')
-  const [feedback, setFeedback] = useState(null)  // { msg, ok }
+export default function CommandInput({ onMessage }) {
+  const [text, setText] = useState('')
   const inputRef = useRef(null)
+
+  const timestamp = () => new Date().toTimeString().slice(0, 8)
 
   const send = async () => {
     const cmd = text.trim()
     if (!cmd) return
     setText('')
-    setFeedback(null)
+
+    onMessage({ type: 'user', text: cmd, timestamp: timestamp() })
 
     try {
-      const res  = await fetch('/command', {
+      const res = await fetch('/command', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ command: cmd }),
       })
-      await res.json()
-      setFeedback({ msg: 'dispatched', ok: true })
+      const data = await res.json()
+      onMessage({ type: 'zeph', response: data, timestamp: timestamp() })
     } catch (err) {
-      setFeedback({ msg: `error: ${err.message}`, ok: false })
+      onMessage({ type: 'zeph', response: { error: err.message }, timestamp: timestamp() })
     }
 
-    setTimeout(() => setFeedback(null), 3000)
     inputRef.current?.focus()
   }
 
@@ -33,12 +34,6 @@ export default function CommandInput() {
 
   return (
     <div style={styles.wrapper}>
-      {feedback && (
-        <div style={{ ...styles.feedback, color: feedback.ok ? '#00ff88' : '#ff3d5a' }}>
-          {feedback.msg}
-        </div>
-      )}
-
       <div style={styles.row}>
         <span style={styles.prompt}>&gt;</span>
         <input
@@ -65,16 +60,6 @@ const styles = {
     borderTop: '1px solid #1a2230',
     background: '#0e1318',
     flexShrink: 0,
-  },
-  feedback: {
-    fontFamily: "'JetBrains Mono', monospace",
-    fontSize: '11px',
-    marginBottom: '8px',
-    padding: '6px 8px',
-    background: '#080b0f',
-    border: '1px solid #1a2230',
-    borderRadius: '4px',
-    wordBreak: 'break-all',
   },
   row: {
     display: 'flex',
