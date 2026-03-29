@@ -21,16 +21,22 @@ export default function CommandLog({ logs }) {
 
 function LogRow({ entry }) {
   const ok = entry.result === 'ok'
+  const details = entry.details ? entry.details.slice(0, 80) : null
+
   return (
     <div style={styles.row}>
       <div style={styles.meta}>
         <span style={styles.ts}>{entry.timestamp}</span>
+        {entry.method && <span style={styles.method}>{entry.method}</span>}
+        {entry.endpoint && <span style={styles.endpoint}>{entry.endpoint}</span>}
+        {entry.endpoint && <span style={styles.arrow}>→</span>}
         <span style={styles.target}>{entry.target}</span>
         <span style={{ ...styles.result, color: ok ? '#00ff88' : '#ff3d5a' }}>
           {ok ? 'OK' : 'ERR'}
         </span>
       </div>
       <div style={styles.cmd}>{entry.command}</div>
+      {details && <div style={styles.details}>{details}</div>}
     </div>
   )
 }
@@ -78,19 +84,36 @@ const styles = {
   },
   meta: {
     display: 'flex',
-    gap: '10px',
+    gap: '6px',
     alignItems: 'center',
     marginBottom: '3px',
+    flexWrap: 'wrap',
   },
   ts: {
     color: '#2d3748',
     fontSize: '11px',
     fontVariantNumeric: 'tabular-nums',
   },
-  target: {
+  method: {
+    color: '#00d4ff',
+    fontSize: '10px',
+    fontWeight: 700,
+    letterSpacing: '0.05em',
+  },
+  endpoint: {
     color: '#4a5568',
     fontSize: '11px',
+    fontFamily: "'JetBrains Mono', monospace",
+  },
+  arrow: {
+    color: '#2d3748',
+    fontSize: '11px',
+  },
+  target: {
+    color: '#00d4ff',
+    fontSize: '11px',
     flex: 1,
+    fontVariantNumeric: 'tabular-nums',
   },
   result: {
     fontSize: '10px',
@@ -98,9 +121,20 @@ const styles = {
     letterSpacing: '0.05em',
   },
   cmd: {
-    color: '#00d4ff',
+    color: '#e2e8f0',
     fontSize: '12px',
     fontFamily: "'JetBrains Mono', monospace",
     wordBreak: 'break-all',
+    paddingLeft: '8px',
+  },
+  details: {
+    color: '#4a5568',
+    fontSize: '11px',
+    fontFamily: "'JetBrains Mono', monospace",
+    paddingLeft: '8px',
+    marginTop: '2px',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    whiteSpace: 'nowrap',
   },
 }

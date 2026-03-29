@@ -12,10 +12,11 @@ async def resolve_targets(target: str, action: str, command: str) -> list:
     if target and target[0].isdigit():
         return [target]
 
-    # Broadcast to all online devices
+    # Broadcast to all Zeph client machines
     if target == "all":
-        devices = get_all_devices()
-        return [d["ip"] for d in devices if d["status"] == "online"]
+        from db import get_zeph_clients
+        clients = get_zeph_clients()
+        return [d["ip"] for d in clients]
 
     # Lights / GPIO stub
     if target == "lights" or action == "gpio":
@@ -97,8 +98,11 @@ async def dispatch_workflow(workflow: list) -> list:
             *(dispatch_one(session, ip, action, command) for ip, action, command in tasks)
         )
 
-    now = datetime.utcnow().isoformat()
+    now = datetime.now().strftime("%H:%M:%S")
+    endpoint_map = {"bash": "/bash", "hyprctl": "/dispatch", "airdrop": "/airdrop", "gpio": "/gpio"}
     for r in results:
-        insert_log(now, r["command"], r["target"], r["status"])
+        endpoint = endpoint_map.get(r["action"], "/dispatch")
+        details = r.get("output") or r.get("error") or ""
+        insert_log(now, r["command"], r["target"], r["status"], method="POST", endpoint=endpoint, details=details)
 
     return list(results)

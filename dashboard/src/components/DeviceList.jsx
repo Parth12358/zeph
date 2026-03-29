@@ -51,6 +51,7 @@ export default function DeviceList({ devices }) {
 
 function DeviceRow({ device, isEditing, editName, editType, onRowClick, onNameChange, onTypeChange, onCancel, onSaved }) {
   const [saving, setSaving] = useState(false)
+  const [isClient, setIsClient] = useState(!!device.is_zeph_client)
   const online = device.status === 'online'
   const displayName = device.friendly_name || device.hostname || '—'
 
@@ -70,6 +71,18 @@ function DeviceRow({ device, isEditing, editName, editType, onRowClick, onNameCh
     }
   }
 
+  async function toggleClient(e) {
+    e.stopPropagation()
+    const newVal = !isClient
+    setIsClient(newVal)
+    device.is_zeph_client = newVal
+    await fetch(`/devices/${device.ip}/zeph-client`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ is_zeph_client: newVal })
+    })
+  }
+
   return (
     <div style={styles.rowWrapper}>
       <div style={{ ...styles.row, cursor: 'pointer' }} onClick={onRowClick}>
@@ -81,6 +94,12 @@ function DeviceRow({ device, isEditing, editName, editType, onRowClick, onNameCh
                 {device.device_type}
               </span>
             )}
+            <button
+              style={{ ...styles.clientBtn, ...(isClient ? styles.clientBtnActive : styles.clientBtnInactive) }}
+              onClick={toggleClient}
+            >
+              {isClient ? 'CLIENT' : '+CLIENT'}
+            </button>
           </div>
           <span style={{ ...styles.badge, ...(online ? styles.badgeOnline : styles.badgeOffline) }}>
             {online ? 'ONLINE' : 'OFFLINE'}
@@ -271,5 +290,24 @@ const styles = {
     fontSize: '11px',
     padding: '4px 12px',
     cursor: 'pointer',
+  },
+  clientBtn: {
+    fontSize: '9px',
+    fontWeight: 700,
+    letterSpacing: '0.08em',
+    padding: '1px 5px',
+    borderRadius: '3px',
+    border: '1px solid',
+    cursor: 'pointer',
+  },
+  clientBtnActive: {
+    color: '#00d4ff',
+    background: 'rgba(0,212,255,0.1)',
+    borderColor: 'rgba(0,212,255,0.4)',
+  },
+  clientBtnInactive: {
+    color: '#4a5568',
+    background: 'transparent',
+    borderColor: '#2d3748',
   },
 }
