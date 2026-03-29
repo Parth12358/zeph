@@ -1,12 +1,12 @@
 {
   "apps": {
     "librewolf": {
-      "count": 28,
-      "last_opened": "2026-03-29 03:01:16",
+      "count": 39,
+      "last_opened": "2026-03-29 04:23:32",
       "workspaces": {
-        "5": 18,
+        "5": 27,
         "4": 8,
-        "6": 2
+        "6": 4
       },
       "last_workspace": 5
     },
@@ -19,33 +19,35 @@
       "last_workspace": 4
     },
     "nano": {
-      "count": 4,
-      "last_opened": "2026-03-29 03:01:16",
+      "count": 7,
+      "last_opened": "2026-03-29 04:19:48",
       "workspaces": {
-        "5": 3,
-        "6": 1
+        "5": 5,
+        "6": 2
       },
       "last_workspace": 5
     },
     "code-oss": {
-      "count": 3,
-      "last_opened": "2026-03-29 03:01:16",
+      "count": 10,
+      "last_opened": "2026-03-29 04:19:48",
       "workspaces": {
-        "5": 3
+        "5": 8,
+        "6": 2
       },
       "last_workspace": 5
     },
     "alacritty": {
-      "count": 1,
-      "last_opened": "2026-03-29 02:59:12",
+      "count": 8,
+      "last_opened": "2026-03-29 04:19:48",
       "workspaces": {
-        "5": 1
+        "5": 6,
+        "6": 2
       },
       "last_workspace": 5
     },
     "kitty": {
-      "count": 1,
-      "last_opened": "2026-03-29 03:01:16",
+      "count": 2,
+      "last_opened": "2026-03-29 03:12:27",
       "workspaces": {
         "5": 1
       },
@@ -60,9 +62,9 @@
     5,
     5,
     5,
-    5,
-    5,
+    6,
+    6,
     6
   ],
-  "last_updated": "2026-03-29 03:01:16"
+  "last_updated": "2026-03-29 04:23:32"
 }

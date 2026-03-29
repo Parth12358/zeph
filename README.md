@@ -198,13 +198,7 @@ Dashboard dev server runs on `http://localhost:5173`.
 
 ---
 
-## TODO
-
-See [IMPLEMENTATION.md](IMPLEMENTATION.md) for the full phase-by-phase TODO list.
-
----
-
-# Zeph — TODO
+## Zeph — TODO
 
 ---
 
@@ -212,16 +206,16 @@ See [IMPLEMENTATION.md](IMPLEMENTATION.md) for the full phase-by-phase TODO list
 
 ### Server (`server/`)
 - [x] `main.py` — FastAPI app, all routes, WebSocket endpoints, static mounts, CORS, lifespan
-- [x] `db.py` — SQLite schema (devices + logs tables), all CRUD functions
+- [x] `db.py` — SQLite schema (devices + logs tables), all CRUD functions, idempotent migrations
 - [x] `scanner.py` — async ping sweep + ARP parsing, Linux flags, subnet via .env, 5min interval
-- [x] `ollama_client.py` — `plan_workflow()` via `qwen3-coder:30b`, structured JSON output, device list injected at runtime
+- [x] `ollama_client.py` — `plan_workflow()` + `summarize_notes()`, device list injected at runtime, improved system prompt
 
 ### Dashboard (`dashboard/`)
 - [x] `App.jsx` — layout, WebSocket connections, stats polling, prop routing
 - [x] `StatusBar.jsx` — logo, online count, clock, status pill, SCAN refresh button
-- [x] `DeviceList.jsx` — device rows, status badges, friendly name + device type, inline edit, is_zeph_client toggle
-- [x] `CommandLog.jsx` — scrolling log, METHOD + endpoint + target + output per entry
-- [x] `CommandInput.jsx` — terminal-style input, POST to /command, feedback
+- [x] `DeviceList.jsx` — device rows, status badges, friendly name + device type, inline edit
+- [x] `CommandLog.jsx` — conversation UI, parsed Zeph responses, summary block, CLEAR button
+- [x] `CommandInput.jsx` — terminal-style input, POST to /command, feeds conversation UI
 - [x] `SystemStats.jsx` — CPU/RAM/GPU bars, uptime, animated transitions
 - [x] `vite.config.js` — dev proxy for API + WebSocket + /ping to port 8000
 - [x] `package.json` — React 18, Vite 5
@@ -237,115 +231,97 @@ See [IMPLEMENTATION.md](IMPLEMENTATION.md) for the full phase-by-phase TODO list
 - [x] Scanner fixed for Linux ping flags + ARP parsing
 - [x] Scanner interval changed to 5 minutes
 - [x] Manual scan trigger `POST /scan` endpoint added
-- [x] `get_logs(50)` explicit in main.py
-- [x] `import os` at top of main.py
-- [x] `/ping` proxy added to vite.config.js
 - [x] Device familiars — friendly name + device type, stored in SQLite
-- [x] `is_zeph_client` flag — only Zeph clients receive "all" dispatches
-- [x] `PATCH /devices/<ip>/zeph-client` endpoint added
-- [x] Logs table updated — method, endpoint, details columns added
+- [x] `is_zeph_client` removed — dispatch targets named devices only
+- [x] `get_named_devices()` — only dispatches to devices with friendly name set
+- [x] Logs table updated — method, endpoint, details columns
+- [x] `dashboard/dist` added to .gitignore
 
 ---
 
 ## Phase 2 — Workflow Execution (Client Dispatcher) ✅ COMPLETE
 
 ### `server/dispatcher.py`
-- [x] Build `dispatcher.py` — async HTTP dispatcher using `aiohttp`
-- [x] Function `dispatch_workflow(workflow: list)` — iterates workflow items, fires HTTP POST to each target
-- [x] Target resolution — look up IP from device registry by hostname or use IP directly
-- [x] Handle `target: "all"` — dispatch to Zeph clients only (`is_zeph_client = true`)
-- [x] Handle `target: "lights"` — stub result
-- [x] Parallel dispatch — use `asyncio.gather()` for concurrent execution
-- [x] Return results per target — `{ ip, action, command, result, error }`
-- [x] Wire dispatcher into `/command` endpoint in `main.py`
+- [x] Async HTTP dispatcher using `aiohttp`
+- [x] `dispatch_workflow()` — parallel dispatch via `asyncio.gather()`
+- [x] Target resolution — IP, hostname, "all" (named devices), "server"
+- [x] `action: "bash"` → POST /bash on client
+- [x] `action: "hyprctl"` → POST /dispatch on client
+- [x] `action: "notes"` → POST /notes on client
+- [x] `action: "summarize"` → GET /notes/summarize on server
+- [x] `action: "multi"` → POST /multi on client
+- [x] `action: "lights"` → stub result
+- [x] 10s timeout per request, broad exception handling
 - [x] Log each dispatch result with method, endpoint, details
-
-### Fixes Applied
-- [x] Broad `except Exception` fallback in `dispatch_one`
-- [x] Stub result always returns `target: "lights"`
-- [x] Explicit empty workflow early-return in `/command`
 
 ---
 
-## Phase 3 — Client Agent (Arch + Hyprland) 🔄 IN PROGRESS
+## Phase 3 — Client Agent (Arch + Hyprland) ✅ COMPLETE
 
 ### `client/agent.py` ✅
 - [x] Flask HTTP server on port 5000
-- [x] `POST /bash` — runs allowed bash commands via subprocess
-- [x] `POST /dispatch` — runs whitelisted hyprctl dispatch commands
-- [x] `GET /context` — returns usage tracking context
-- [x] `GET /notes` — returns full notes.md contents
+- [x] `POST /bash` — allowed bash commands, --new-window injected, xdg-open replaced, quotes stripped
+- [x] `POST /dispatch` — whitelisted hyprctl dispatch commands
 - [x] `POST /notes` — appends note with timestamp + machine name
-- [x] All requests logged to stdout with timestamp
-- [x] `--new-window` injected for librewolf automatically
-- [x] `xdg-open` replaced with `librewolf --new-window`
-- [x] Quotes stripped from URL args
+- [x] `POST /multi` — opens up to 4 apps on new workspace
+- [x] `GET /notes` — returns full notes.md
+- [x] `GET /context` — returns usage tracking context
 
 ### `client/whitelist.py` ✅
 - [x] `HYPRCTL_DISPATCH` — workspace, exec, movetoworkspace, togglefloating, fullscreen
 - [x] `BASH_PREFIXES` — librewolf, xdg-open
+- [x] `MULTI_ALLOWED` — librewolf, kitty, alacritty, nano, code-oss, xdg-open
 
 ### `client/placer.py` ✅
 - [x] Workspace-first logic — switches to empty workspace before launching app
-- [x] `get_workspace_state()` — tracks windows per workspace 1-10
-- [x] `find_best_workspace()` — prefers empty, falls back to least occupied
-- [x] `get_best_workspace()` — main entry point
+- [x] `get_best_workspace()` — prefers empty, falls back to least occupied
+- [x] `open_multi()` — opens up to 4 apps on same workspace, most important first
+- [x] `tile_apps()` — tiling layout for 2/3/4 apps
+- [x] nano wrapped in alacritty window automatically
 
 ### `client/tracker.py` ✅
-- [x] `usage.json` — local usage tracking file
-- [x] Tracks app open count, last opened, workspace history
-- [x] `recent_workspaces` — last 10 workspaces used
-- [x] `GET /context` exposes context to GX10
+- [x] `usage.json` — local usage tracking
+- [x] App count, last opened, workspace history
+- [x] `GET /context` exposes to GX10
 
 ### `client/notes.py` ✅
 - [x] `~/Documents/notes.md` — auto-created with header
-- [x] `append_note()` — timestamp + machine name + `---` separator
-- [x] `read_notes()` — returns full file contents
+- [x] `append_note()` — timestamp + machine name + separator
+- [x] `read_notes()` — returns full contents
 
 ### Server notes endpoints ✅
-- [x] `POST /notes/append` — pushes note to all/specific clients
-- [x] `GET /notes/collect` — pulls notes from all online clients
-- [x] `GET /notes/summarize` — Ollama summarizes collected notes
-- [x] `summarize_notes()` added to `ollama_client.py`
+- [x] `POST /notes/append` — pushes note to named clients
+- [x] `GET /notes/collect` — pulls from all online named clients
+- [x] `GET /notes/summarize` — Ollama summarizes, shown in conversation UI
 
-### Ollama improvements ✅
-- [x] System prompt updated — no quotes around URLs, always use librewolf
-- [x] Device list injected into Ollama context at runtime
-- [x] Ollama uses exact IPs from device registry
-
-### Still TODO in Phase 3
-- [ ] Part 7 — Multi-app workflows (open nano + browser simultaneously on new workspace)
-- [ ] Deploy client agent to second Arch machine
-- [ ] Auto-start via Hyprland `exec-once` (optional)
+### Multi-app workflows ✅
+- [x] Part 7 tested end-to-end via server
+- [x] 2/3/4 app combos verified
+- [x] App order importance rule added to Ollama system prompt
 
 ---
 
 ## Phase 4 — OpenDrop / AirDrop File Distribution
 
 - [ ] Add `POST /airdrop` endpoint to `main.py`
-- [ ] Accepts `{ "file": "<path>", "target": "<ip or hostname>" }`
-- [ ] Calls OpenDrop CLI via subprocess: `opendrop send -f <file> -r <target>`
+- [ ] Calls OpenDrop CLI via subprocess
 - [ ] Wire `action: "airdrop"` in dispatcher
-- [ ] Handle OpenDrop not installed — return clear error
-- [ ] Test file send to iPhone (native AirDrop receive)
+- [ ] Test file send to iPhone
 
 ---
 
 ## Phase 5 — Voice Input on GX10 (Whisper STT)
 
-- [ ] Build `whisper_input.py` — local Whisper STT using `openai-whisper`
-- [ ] Capture mic input via `sounddevice` or `pyaudio`
-- [ ] Transcribe with Whisper `base` or `small` model
-- [ ] On transcription complete → POST to `/command` internally
-- [ ] Wire into `main.py` lifespan startup alongside scanner
+- [ ] Build `whisper_input.py` — local Whisper STT
+- [ ] Capture mic, transcribe, POST to `/command`
+- [ ] Wire into `main.py` lifespan startup
 
 ---
 
 ## Phase 6 — PWA Rewrite
 
-- [ ] Rewrite PWA for better UX
-- [ ] Format response display — human readable not raw JSON
-- [ ] Better voice button UX
+- [ ] Better UX — human readable responses not raw JSON
+- [ ] Better voice button
 - [ ] HTTPS/WSS for iPhone mic support
 
 ---
@@ -355,39 +331,37 @@ See [IMPLEMENTATION.md](IMPLEMENTATION.md) for the full phase-by-phase TODO list
 - [ ] Generate self-signed cert
 - [ ] Run uvicorn with SSL
 - [ ] Add GX10 cert to iPhone trusted certs
-- [ ] Update PWA manifest + fetch/WebSocket calls to https/wss
+- [ ] Update PWA manifest + fetch/WebSocket to https/wss
 
 ---
 
 ## Phase 8 — Config & Deployment
 
-- [ ] Move remaining hardcoded values to `.env` — OLLAMA_MODEL, PORT, ZEPH_API_KEY
-- [ ] `startup.sh` — single script to launch everything on GX10 boot
-- [ ] systemd service for FastAPI server on GX10
-- [ ] Deploy client agent to second Arch machine
-- [ ] Add `dashboard/dist` to `.gitignore` to avoid git pull conflicts
+- [ ] Move remaining hardcoded values to `.env` — OLLAMA_MODEL, PORT
+- [ ] `startup.sh` — single boot script for GX10
+- [ ] systemd service for FastAPI
+- [ ] `README.md` — full setup guide
 
 ---
 
 ## Phase 9 — Demo Prep (Hackathon)
 
-- [ ] End-to-end demo script — one voice command triggers multi-machine workflow
-- [ ] At least 2 client machines running the agent
-- [ ] At least 1 physical action (lights)
-- [ ] Dashboard on external monitor showing live command log + device list
-- [ ] iPhone PWA on homescreen, voice working over HTTPS
-- [ ] Rehearse demo flow — target under 90 seconds start to finish
-
----
-
-## Known Issues / Open Gaps
-
-- [ ] WebSocket proxy in prod — confirm built dashboard WS connects through FastAPI
-- [ ] No retry logic in dispatcher — if client is down, request just fails
-- [ ] PWA response display shows raw JSON — Phase 6 will fix
-- [ ] Second Arch machine not yet deployed
-- [ ] `dashboard/dist` conflicts on git pull — add to .gitignore
+- [ ] End-to-end demo script
+- [ ] At least 2 client machines running agent
+- [ ] Dashboard on external monitor
+- [ ] iPhone PWA on homescreen
+- [ ] Rehearse — target under 90 seconds
 
 ---
 
 ## Phase 10 — Win
+
+---
+
+## Ambiguous Bugs (Not Worth Fixing)
+
+- [ ] Dashboard sometimes doesn't dispatch until hard refresh — stale WS after server restart. Fix: Ctrl+Shift+R.
+
+## Known Issues / Open Gaps
+
+- [ ] PWA response still raw JSON — Phase 6 will fix

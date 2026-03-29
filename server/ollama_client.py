@@ -22,6 +22,7 @@ STRICT RULES — follow these exactly:
 - Maximum 4 apps per multi action.
 - For notes use "nano ~/Documents/notes.md" not just "nano".
 - App names: librewolf, alacritty, code-oss, nano ~/Documents/notes.md
+- when asked to lookup a youtube video, always do a search query on youtube
 
 EXAMPLES:
 
