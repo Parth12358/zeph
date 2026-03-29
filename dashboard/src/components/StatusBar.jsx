@@ -2,11 +2,22 @@ import { useState, useEffect } from 'react'
 
 export default function StatusBar({ devices }) {
   const [time, setTime] = useState(nowStr())
+  const [scanning, setScanning] = useState(false)
 
   useEffect(() => {
     const id = setInterval(() => setTime(nowStr()), 1000)
     return () => clearInterval(id)
   }, [])
+
+  const triggerScan = async () => {
+    setScanning(true)
+    try {
+      await fetch('/scan', { method: 'POST' })
+    } catch (e) {
+      console.error('scan failed', e)
+    }
+    setTimeout(() => setScanning(false), 3000)
+  }
 
   const onlineCount = devices.filter(d => d.status === 'online').length
 
@@ -26,8 +37,16 @@ export default function StatusBar({ devices }) {
         </div>
       </div>
 
-      {/* Right — system status + clock */}
+      {/* Right — scan button + system status + clock */}
       <div style={styles.right}>
+        <button onClick={triggerScan} disabled={scanning} style={{
+          ...styles.scanBtn,
+          opacity: scanning ? 0.5 : 1,
+          color: scanning ? '#4a5568' : '#00d4ff',
+          borderColor: scanning ? '#1a2230' : 'rgba(0,212,255,0.3)',
+        }}>
+          {scanning ? '...' : '↻ SCAN'}
+        </button>
         <div style={styles.statusPill}>
           <span style={styles.statusDot} />
           <span style={{ color: '#00ff88', fontSize: '10px', fontWeight: 700, letterSpacing: '0.1em' }}>
@@ -122,5 +141,17 @@ const styles = {
     color: '#4a5568',
     fontSize: '12px',
     fontVariantNumeric: 'tabular-nums',
+  },
+  scanBtn: {
+    background: 'transparent',
+    border: '1px solid',
+    borderRadius: '4px',
+    fontSize: '10px',
+    fontWeight: 700,
+    letterSpacing: '0.1em',
+    padding: '3px 10px',
+    cursor: 'pointer',
+    fontFamily: 'inherit',
+    transition: 'opacity 0.2s',
   },
 }

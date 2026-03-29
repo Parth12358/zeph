@@ -14,7 +14,7 @@ from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
 
 from db import init_db, get_all_devices, get_logs, update_device_meta
-from scanner import start_scanner
+from scanner import start_scanner, _sweep
 from ollama_client import plan_workflow, summarize_notes
 from dispatcher import dispatch_workflow
 
@@ -35,6 +35,19 @@ app.add_middleware(
 )
 
 # ── REST ─────────────────────────────────────────────────────────────────────
+
+async def _run_scan():
+    try:
+        await _sweep()
+    except Exception as e:
+        print(f"[scan] manual sweep error: {e}")
+
+
+@app.post("/scan")
+async def trigger_scan():
+    asyncio.create_task(_run_scan())
+    return {"status": "ok", "message": "scan triggered"}
+
 
 @app.get("/ping")
 def ping():

@@ -12,7 +12,7 @@ load_dotenv()
 from db import upsert_device, mark_offline_except
 
 SUBNET_PREFIX = os.getenv("SUBNET_PREFIX", "192.168.1")
-SWEEP_SECS    = 30
+SWEEP_SECS    = 300  # 5 minutes
 PING_WORKERS  = 50            # concurrent pings
 
 

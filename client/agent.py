@@ -1,10 +1,10 @@
 import subprocess
-import threading
+import time
 from datetime import datetime
 from flask import Flask, request, jsonify
-from placer import smart_place
+from placer import get_best_workspace
 from whitelist import HYPRCTL_DISPATCH, BASH_PREFIXES
-from tracker import record_open, get_context
+from tracker import record_open, record_placement, get_context
 from notes import append_note, read_notes, get_machine_name
 
 app = Flask(__name__)
@@ -30,13 +30,22 @@ def bash():
         return jsonify({"status": "error", "error": "command not allowed"}), 403
 
     args = command.strip().split()
+    if args[0] == "librewolf" and "--new-window" not in args:
+        args.insert(1, "--new-window")
+
+    workspace_id = get_best_workspace()
+    log(f"[placer] selected workspace: {workspace_id}")
+    subprocess.run(["hyprctl", "dispatch", "workspace", str(workspace_id)], capture_output=True, text=True)
+    log(f"[placer] switching to workspace {workspace_id}")
+    time.sleep(0.3)
+
     log(f"Executing: {args}")
 
     try:
         subprocess.Popen(args)
         app_name = args[0]
         record_open(app_name)
-        threading.Thread(target=smart_place, args=(app_name,), daemon=True).start()
+        record_placement(app_name, workspace_id)
         log("Status: ok")
         return jsonify({"status": "ok", "output": f"opened {app_name}"})
     except Exception as e:
