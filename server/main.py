@@ -155,8 +155,9 @@ async def notes_summarize():
 
 @app.post("/command")
 async def command(body: dict):
-    cmd  = body.get("command", "")
-    plan = await asyncio.to_thread(plan_workflow, cmd)
+    cmd     = body.get("command", "")
+    devices = get_all_devices()
+    plan    = await asyncio.to_thread(plan_workflow, cmd, devices)
 
     if "error" in plan and not plan.get("workflow"):
         return {"received": cmd, "plan": plan, "results": [], "status": "error"}

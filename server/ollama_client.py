@@ -56,12 +56,22 @@ def summarize_notes(notes: str) -> str:
         return "Could not summarize notes."
 
 
-def plan_workflow(command: str) -> dict:
+def plan_workflow(command: str, devices: list = None) -> dict:
+    if devices:
+        online = [d for d in devices if d.get("status") == "online"]
+        device_lines = "\n".join([
+            f"- hostname: {d.get('hostname', 'unknown')}, ip: {d['ip']}, friendly_name: {d.get('friendly_name') or 'none'}, type: {d.get('device_type') or 'unknown'}"
+            for d in online
+        ])
+        device_context = f"\nCURRENTLY ONLINE DEVICES:\n{device_lines}\n\nAlways use the exact IP address as the target, not the hostname."
+    else:
+        device_context = ""
+
     try:
         response = ollama.chat(
             model=MODEL,
             messages=[
-                {"role": "system", "content": SYSTEM_PROMPT},
+                {"role": "system", "content": SYSTEM_PROMPT + device_context},
                 {"role": "user",   "content": command},
             ],
         )
