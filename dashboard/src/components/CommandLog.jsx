@@ -85,6 +85,9 @@ function ZephMessage({ msg }) {
             {results.map((r, i) => {
               const ok = r.status === 'ok'
               const label = r.friendly_name ? `${r.ip} (${r.friendly_name})` : r.ip
+              const notesOutput = r.action === 'notes' && ok && r.output
+                ? (() => { try { const t = JSON.parse(r.output)?.text ?? r.output; return t.length > 80 ? t.slice(0, 80) + '...' : t } catch { return r.output.length > 80 ? r.output.slice(0, 80) + '...' : r.output } })()
+                : null
               return (
                 <div key={i} style={styles.resultItem}>
                   <span style={styles.arrow}>→</span>
@@ -93,9 +96,29 @@ function ZephMessage({ msg }) {
                   <span style={{ color: ok ? '#00ff88' : '#ff3d5a', fontWeight: 700 }}>
                     {ok ? '✓ ok' : `✗ ${r.error ?? 'error'}`}
                   </span>
+                  {notesOutput && (
+                    <div style={styles.notesOutput}>"{notesOutput}"</div>
+                  )}
                 </div>
               )
             })}
+            {(() => {
+              const summaryResult = results.find(r => r.action === 'summarize' && r.output)
+              if (!summaryResult) return null
+              let summaryText = summaryResult.output
+              try {
+                const parsed = JSON.parse(summaryResult.output)
+                summaryText = parsed.summary || summaryResult.output
+              } catch {
+                summaryText = summaryResult.output
+              }
+              return (
+                <div style={styles.summaryBlock}>
+                  <div style={styles.summaryLabel}>SUMMARY</div>
+                  {summaryText}
+                </div>
+              )
+            })()}
             <div style={styles.summary}>
               Done. {okCount}/{total} actions completed.
             </div>
@@ -257,6 +280,29 @@ const styles = {
   },
   resultEndpoint: {
     color: '#4a5568',
+  },
+  notesOutput: {
+    color: '#4a5568',
+    fontSize: '11px',
+    paddingLeft: '14px',
+    marginTop: '2px',
+    fontStyle: 'italic',
+  },
+  summaryBlock: {
+    marginTop: '12px',
+    padding: '12px',
+    borderLeft: '2px solid #00d4ff',
+    background: 'rgba(0,212,255,0.05)',
+    fontSize: '12px',
+    color: '#e8edf5',
+    whiteSpace: 'pre-wrap',
+    lineHeight: '1.6',
+  },
+  summaryLabel: {
+    color: '#00d4ff',
+    fontSize: '10px',
+    marginBottom: '8px',
+    letterSpacing: '1px',
   },
   summary: {
     color: '#a0aec0',
