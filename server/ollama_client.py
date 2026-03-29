@@ -44,6 +44,9 @@ User: "add note: standup went well"
 User: "add note about mac and cheese recipe"
 {"workflow":[{"target":"all","action":"notes","command":"Mac and cheese recipe: boil pasta, make cheese sauce with butter flour milk and cheese, combine."}]}
 
+User: "summarize notes"
+{"workflow":[{"target":"server","action":"summarize","command":"notes"}]}
+
 User: "note that the meeting is at 3pm"
 {"workflow":[{"target":"all","action":"notes","command":"Meeting at 3pm"}]}\
 """
