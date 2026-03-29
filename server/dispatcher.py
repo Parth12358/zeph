@@ -12,10 +12,11 @@ async def resolve_targets(target: str, action: str, command: str) -> list:
     if target and target[0].isdigit():
         return [target]
 
-    # Broadcast to all online devices
+    # Broadcast to all named (known) devices
     if target == "all":
-        devices = get_all_devices()
-        return [d["ip"] for d in devices if d["status"] == "online"]
+        from db import get_named_devices
+        devices = get_named_devices()
+        return [d["ip"] for d in devices]
 
     # Lights / GPIO stub
     if target == "lights" or action == "gpio":

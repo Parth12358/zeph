@@ -67,6 +67,24 @@ def get_all_devices():
     con.close()
     return [{"hostname": r[0], "ip": r[1], "mac": r[2], "status": r[3], "last_seen": r[4], "friendly_name": r[5], "device_type": r[6]} for r in rows]
 
+def get_named_devices() -> list:
+    con = sqlite3.connect(DB_PATH)
+    cur = con.cursor()
+    cur.execute(
+        "SELECT hostname, ip, mac, status, last_seen, friendly_name, device_type "
+        "FROM devices WHERE status = 'online' AND friendly_name IS NOT NULL AND friendly_name != ''"
+    )
+    rows = cur.fetchall()
+    con.close()
+    return [
+        {
+            "hostname": r[0], "ip": r[1], "mac": r[2],
+            "status": r[3], "last_seen": r[4],
+            "friendly_name": r[5], "device_type": r[6]
+        }
+        for r in rows
+    ]
+
 def update_device_meta(ip: str, friendly_name: str, device_type: str):
     con = sqlite3.connect(DB_PATH)
     con.execute(
