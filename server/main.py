@@ -11,7 +11,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
 
-from db import init_db, get_all_devices, get_logs
+from db import init_db, get_all_devices, get_logs, update_device_meta
 from scanner import start_scanner
 from ollama_client import plan_workflow
 from dispatcher import dispatch_workflow
@@ -60,6 +60,15 @@ def devices():
 @app.get("/logs")
 def logs():
     return {"logs": get_logs(50)}
+
+@app.patch("/devices/{ip:path}")
+async def update_device(ip: str, body: dict):
+    friendly_name = body.get("friendly_name")
+    device_type = body.get("device_type")
+    if friendly_name is None and device_type is None:
+        return {"status": "error", "error": "invalid request"}, 400
+    update_device_meta(ip, friendly_name, device_type)
+    return {"status": "ok"}
 
 @app.post("/command")
 async def command(body: dict):

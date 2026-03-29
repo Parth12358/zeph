@@ -1,6 +1,8 @@
 import subprocess
+import threading
 from datetime import datetime
 from flask import Flask, request, jsonify
+from placer import smart_place
 
 app = Flask(__name__)
 
@@ -20,7 +22,7 @@ def bash():
     command = data["command"]
     log(f"Received: {command}")
 
-    if not command.strip().startswith("librewolf"):
+    if not command.strip().startswith(("librewolf", "xdg-open")):
         log("Status: error (command not allowed)")
         return jsonify({"status": "error", "error": "command not allowed"}), 403
 
@@ -29,6 +31,7 @@ def bash():
 
     try:
         subprocess.Popen(args)
+        threading.Thread(target=smart_place, args=("librewolf",), daemon=True).start()
         log("Status: ok")
         return jsonify({"status": "ok", "output": "opened librewolf"})
     except Exception as e:

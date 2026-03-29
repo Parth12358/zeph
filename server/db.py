@@ -24,6 +24,11 @@ def init_db():
             result TEXT
         )
     """)
+    for col, definition in [("friendly_name", "TEXT"), ("device_type", "TEXT")]:
+        try:
+            con.execute(f"ALTER TABLE devices ADD COLUMN {col} {definition}")
+        except Exception:
+            pass  # column already exists
     con.commit()
     con.close()
 
@@ -45,10 +50,19 @@ def upsert_device(hostname, ip, mac, status, last_seen):
 def get_all_devices():
     con = sqlite3.connect(DB_PATH)
     cur = con.cursor()
-    cur.execute("SELECT hostname, ip, mac, status, last_seen FROM devices")
+    cur.execute("SELECT hostname, ip, mac, status, last_seen, friendly_name, device_type FROM devices")
     rows = cur.fetchall()
     con.close()
-    return [{"hostname": r[0], "ip": r[1], "mac": r[2], "status": r[3], "last_seen": r[4]} for r in rows]
+    return [{"hostname": r[0], "ip": r[1], "mac": r[2], "status": r[3], "last_seen": r[4], "friendly_name": r[5], "device_type": r[6]} for r in rows]
+
+def update_device_meta(ip: str, friendly_name: str, device_type: str):
+    con = sqlite3.connect(DB_PATH)
+    con.execute(
+        "UPDATE devices SET friendly_name=?, device_type=? WHERE ip=?",
+        (friendly_name, device_type, ip)
+    )
+    con.commit()
+    con.close()
 
 def insert_log(timestamp, command, target, result):
     con = sqlite3.connect(DB_PATH)
