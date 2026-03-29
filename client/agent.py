@@ -32,6 +32,9 @@ def bash():
     args = command.strip().split()
     if args[0] == "librewolf" and "--new-window" not in args:
         args.insert(1, "--new-window")
+    if args[0] == "xdg-open":
+        args = ["librewolf", "--new-window"] + args[1:]
+    args = [arg.strip("'\"") for arg in args]
 
     workspace_id = get_best_workspace()
     log(f"[placer] selected workspace: {workspace_id}")
