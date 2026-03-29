@@ -3,9 +3,16 @@
 Natural language network orchestrator. Tell Zeph what to do — it plans a workflow using a local LLM and dispatches commands to every machine on your network simultaneously.
 
 ```
-"open youtube on my arch machine"
-  → Ollama plans: [{ target: "10.0.0.124", action: "bash", command: "librewolf https://youtube.com" }]
-  → dispatched to 10.0.0.124:5000/bash
+"open up my coding setup"
+  → Ollama plans: [{ target: "10.0.0.214", action: "multi", command: "helix,kitty,lazygit" }]
+  → dispatched to 10.0.0.214:5000/multi
+  → done
+```
+
+```
+"open youtube and my studying stuff"
+  → Ollama plans: [{ target: "10.0.0.214", action: "multi", command: "librewolf,helix,nano ~/Documents/notes.md" }]
+  → dispatched to 10.0.0.214:5000/multi
   → done
 ```
 
@@ -24,9 +31,9 @@ Client machines (Arch + Hyprland)
 ```
 
 - **Server** runs on your main machine. Scans the subnet, manages the device registry, calls Ollama to plan workflows, and dispatches HTTP commands to clients.
-- **Client agent** runs on each Arch machine. Exposes `/bash`, `/dispatch`, `/notes` over HTTP. Whitelisted commands only.
+- **Client agent** runs on each Arch machine. Exposes `/bash`, `/dispatch`, `/notes`, `/multi` over HTTP. Whitelisted commands only.
 - **Dashboard** is a React SPA showing live device list, command log, and system stats. Served from `/` by FastAPI.
-- **PWA** is a mobile shell at `/pwa` with voice input via Web Speech API.
+- **PWA** is a mobile shell at `/pwa` with tap-to-speak voice input via Web Speech API.
 
 ---
 
@@ -42,6 +49,7 @@ Client machines (Arch + Hyprland)
 - Python 3.10+
 - Hyprland (for `hyprctl` dispatch commands)
 - `librewolf` (used for all browser opens)
+- `alacritty` (used to wrap TUI apps)
 
 ---
 
@@ -67,6 +75,8 @@ Create `server/.env`:
 
 ```env
 SUBNET_PREFIX=10.0.0
+OLLAMA_MODEL=qwen3-coder:30b
+PORT=8000
 ```
 
 Set `SUBNET_PREFIX` to the first three octets of your LAN (e.g. `192.168.1`, `10.0.0`).
@@ -114,12 +124,18 @@ The agent listens on port 5000. To auto-start with Hyprland, add to `~/.config/h
 exec-once = /path/to/client/venv/bin/python /path/to/client/agent.py
 ```
 
+### 6. Install client apps
+
+```bash
+sudo pacman -S btop lazygit yazi zellij pgcli mpv grim alacritty
+yay -S lazydocker pdfpc pairdrop
+```
+
 ---
 
 ## Dashboard usage
 
 - **Device list** — shows all discovered devices. Click a row to set a friendly name and device type.
-- **CLIENT toggle** — marks a device as a Zeph client. Only `CLIENT`-flagged machines receive `"all"` dispatches. Toggle before sending any commands.
 - **Command input** — type a natural language command and press Enter. Ollama plans the workflow; the dispatcher fires it.
 - **Command log** — shows each dispatched command with method, endpoint, target IP, and output.
 - **SCAN button** — manually trigger a subnet sweep.
@@ -130,11 +146,31 @@ exec-once = /path/to/client/venv/bin/python /path/to/client/agent.py
 
 Open `http://<server-ip>:8000/pwa` on your phone and add to homescreen.
 
-- Tap the mic button to speak a command (Web Speech API).
-- Type in the text field and tap Send.
-- Responses show in the output area.
+- **Tap** the mic button to start listening.
+- **Tap again** to stop and send.
+- Type in the text field and tap Send as an alternative.
 
-> Voice input requires HTTPS on iOS. See Phase 7 in the TODO for cert setup.
+> Voice input requires HTTPS on iOS Safari. On Android Chrome it works over HTTP on LAN.
+
+---
+
+## Preset workflows
+
+The LLM understands named setups and freestyle context. Examples:
+
+| Command | What Zeph does |
+|---------|---------------|
+| `set up for dev` | helix + kitty + lazygit on new workspace |
+| `set up for studying` | librewolf + helix + notes on new workspace |
+| `morning setup` | btop + librewolf + taskwarrior |
+| `presentation mode` | pdfpc + librewolf, switch to workspace 1 |
+| `hackathon mode` | helix + kitty + lazygit + git pull |
+| `show me what's running` | btop + lazydocker |
+| `open git` | lazygit in alacritty |
+| `docker setup` | lazydocker + kitty |
+| `focus mode` | helix + notes |
+
+The LLM is not limited to these — it infers intent from any natural language description.
 
 ---
 
@@ -143,10 +179,12 @@ Open `http://<server-ip>:8000/pwa` on your phone and add to homescreen.
 | File | Key | Default | Description |
 |------|-----|---------|-------------|
 | `server/.env` | `SUBNET_PREFIX` | `192.168.1` | First three octets of your LAN subnet |
-| `server/ollama_client.py` | `MODEL` | `qwen3-coder:30b` | Ollama model for workflow planning |
+| `server/.env` | `OLLAMA_MODEL` | `qwen3-coder:30b` | Ollama model for workflow planning |
+| `server/.env` | `PORT` | `8000` | Server port |
 | `server/scanner.py` | `SWEEP_SECS` | `300` | Subnet scan interval in seconds |
 | `server/scanner.py` | `PING_WORKERS` | `50` | Concurrent ping workers |
-| `client/whitelist.py` | `BASH_PREFIXES` | `librewolf`, `xdg-open` | Allowed bash command prefixes |
+| `client/whitelist.py` | `BASH_PREFIXES` | see file | Allowed bash command prefixes |
+| `client/whitelist.py` | `MULTI_ALLOWED` | see file | Allowed apps for multi-app workflows |
 | `client/whitelist.py` | `HYPRCTL_DISPATCH` | see file | Allowed hyprctl dispatch commands |
 
 ---
@@ -158,7 +196,6 @@ Open `http://<server-ip>:8000/pwa` on your phone and add to homescreen.
 | `POST` | `/command` | Submit natural language command |
 | `GET` | `/devices` | List all devices |
 | `PATCH` | `/devices/{ip}` | Update friendly name / device type |
-| `PATCH` | `/devices/{ip}/zeph-client` | Toggle Zeph client flag |
 | `GET` | `/logs` | Recent command logs |
 | `POST` | `/scan` | Trigger manual subnet sweep |
 | `GET` | `/stats` | CPU / RAM / GPU / uptime |
@@ -174,6 +211,7 @@ Open `http://<server-ip>:8000/pwa` on your phone and add to homescreen.
 |--------|------|-------------|
 | `POST` | `/bash` | Run whitelisted bash command |
 | `POST` | `/dispatch` | Run whitelisted hyprctl dispatch |
+| `POST` | `/multi` | Open up to 4 apps on new workspace |
 | `GET` | `/notes` | Read notes.md |
 | `POST` | `/notes` | Append to notes.md |
 | `GET` | `/context` | Return usage tracking context |
@@ -222,7 +260,7 @@ Dashboard dev server runs on `http://localhost:5173`.
 
 ### PWA (`pwa/`)
 - [x] `index.html` — mobile shell, iOS homescreen meta tags, safe-area insets, apple-touch-icon
-- [x] `app.js` — Web Speech API voice input, text input, POST to /command, button states
+- [x] `app.js` — tap-to-start/stop voice input, Web Speech API, POST to /command
 - [x] `manifest.json` — start_url /pwa, icons array with 192x192 + 512x512
 - [x] `icon.png` + `icon-192.png` — generated via Pillow
 
@@ -232,10 +270,8 @@ Dashboard dev server runs on `http://localhost:5173`.
 - [x] Scanner interval changed to 5 minutes
 - [x] Manual scan trigger `POST /scan` endpoint added
 - [x] Device familiars — friendly name + device type, stored in SQLite
-- [x] `is_zeph_client` removed — dispatch targets named devices only
 - [x] `get_named_devices()` — only dispatches to devices with friendly name set
 - [x] Logs table updated — method, endpoint, details columns
-- [x] `dashboard/dist` added to .gitignore
 
 ---
 
@@ -269,15 +305,15 @@ Dashboard dev server runs on `http://localhost:5173`.
 
 ### `client/whitelist.py` ✅
 - [x] `HYPRCTL_DISPATCH` — workspace, exec, movetoworkspace, togglefloating, fullscreen
-- [x] `BASH_PREFIXES` — librewolf, xdg-open
-- [x] `MULTI_ALLOWED` — librewolf, kitty, alacritty, nano, code-oss, xdg-open
+- [x] `BASH_PREFIXES` — librewolf, xdg-open, git, cd
+- [x] `MULTI_ALLOWED` — librewolf, kitty, alacritty, nano, code-oss, helix, btop, lazygit, lazydocker, yazi, zellij, pgcli, taskwarrior, mpv, pdfpc, grim, pairdrop, opencode, xdg-open
 
 ### `client/placer.py` ✅
 - [x] Workspace-first logic — switches to empty workspace before launching app
 - [x] `get_best_workspace()` — prefers empty, falls back to least occupied
 - [x] `open_multi()` — opens up to 4 apps on same workspace, most important first
 - [x] `tile_apps()` — tiling layout for 2/3/4 apps
-- [x] nano wrapped in alacritty window automatically
+- [x] `ALACRITTY_WRAP` set — all TUI apps wrapped in alacritty automatically
 
 ### `client/tracker.py` ✅
 - [x] `usage.json` — local usage tracking
@@ -298,6 +334,8 @@ Dashboard dev server runs on `http://localhost:5173`.
 - [x] Part 7 tested end-to-end via server
 - [x] 2/3/4 app combos verified
 - [x] App order importance rule added to Ollama system prompt
+- [x] Preset workflows: studying, dev, morning, presentation, hackathon, focus
+- [x] Freestyle LLM rules — infers intent beyond explicit examples
 
 ---
 
@@ -318,8 +356,7 @@ OpenDrop not viable — AWDL/pkg_resources dependency issues, too fragile for ha
 ## Phase 6 — PWA Rewrite
 
 - [ ] Better UX — human readable responses not raw JSON
-- [ ] Better voice button
-- [ ] HTTPS/WSS for iPhone mic support
+- [x] Tap-to-start/stop voice button — done
 
 ---
 
@@ -334,7 +371,7 @@ OpenDrop not viable — AWDL/pkg_resources dependency issues, too fragile for ha
 
 ## Phase 8 — Config & Deployment
 
-- [ ] Move remaining hardcoded values to `.env` — OLLAMA_MODEL, PORT
+- [x] `.env` — SUBNET_PREFIX, OLLAMA_MODEL, PORT
 - [ ] `startup.sh` — single boot script for GX10
 - [ ] systemd service for FastAPI
 - [ ] `README.md` — full setup guide
@@ -344,7 +381,6 @@ OpenDrop not viable — AWDL/pkg_resources dependency issues, too fragile for ha
 ## Phase 9 — Demo Prep (Hackathon)
 
 - [ ] End-to-end demo script
-- [ ] At least 2 client machines running agent
 - [ ] Dashboard on external monitor
 - [ ] iPhone PWA on homescreen
 - [ ] Rehearse — target under 90 seconds
@@ -361,4 +397,5 @@ OpenDrop not viable — AWDL/pkg_resources dependency issues, too fragile for ha
 
 ## Known Issues / Open Gaps
 
-- [ ] PWA response still raw JSON — Phase 6 will fix
+- [ ] PWA response still raw JSON
+- [ ] iOS voice requires HTTPS — use Android or dashboard for demo
