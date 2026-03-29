@@ -12,11 +12,10 @@ async def resolve_targets(target: str, action: str, command: str) -> list:
     if target and target[0].isdigit():
         return [target]
 
-    # Broadcast to all Zeph client machines
+    # Broadcast to all online devices
     if target == "all":
-        from db import get_zeph_clients
-        clients = get_zeph_clients()
-        return [d["ip"] for d in clients]
+        devices = get_all_devices()
+        return [d["ip"] for d in devices if d["status"] == "online"]
 
     # Lights / GPIO stub
     if target == "lights" or action == "gpio":

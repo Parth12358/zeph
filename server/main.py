@@ -13,7 +13,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
 
-from db import init_db, get_all_devices, get_logs, update_device_meta, set_zeph_client
+from db import init_db, get_all_devices, get_logs, update_device_meta
 from scanner import start_scanner, _sweep
 from ollama_client import plan_workflow, summarize_notes
 from dispatcher import dispatch_workflow
@@ -83,12 +83,6 @@ async def update_device(ip: str, body: dict):
     if friendly_name is None and device_type is None:
         return {"status": "error", "error": "invalid request"}, 400
     update_device_meta(ip, friendly_name, device_type)
-    return {"status": "ok"}
-
-@app.patch("/devices/{ip:path}/zeph-client")
-async def set_zeph_client_endpoint(ip: str, body: dict):
-    value = body.get("is_zeph_client", False)
-    set_zeph_client(ip, value)
     return {"status": "ok"}
 
 

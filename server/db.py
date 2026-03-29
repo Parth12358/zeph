@@ -29,12 +29,11 @@ def init_db():
 
     # Add columns that may not exist in older databases
     migrations = [
-        ("devices", "friendly_name",  "TEXT"),
-        ("devices", "device_type",    "TEXT"),
-        ("devices", "is_zeph_client", "INTEGER DEFAULT 0"),
-        ("logs",    "method",         "TEXT DEFAULT 'POST'"),
-        ("logs",    "endpoint",       "TEXT DEFAULT ''"),
-        ("logs",    "details",        "TEXT DEFAULT ''"),
+        ("devices", "friendly_name", "TEXT"),
+        ("devices", "device_type",   "TEXT"),
+        ("logs",    "method",        "TEXT DEFAULT 'POST'"),
+        ("logs",    "endpoint",      "TEXT DEFAULT ''"),
+        ("logs",    "details",       "TEXT DEFAULT ''"),
     ]
     for table, col, definition in migrations:
         try:
@@ -63,38 +62,10 @@ def upsert_device(hostname, ip, mac, status, last_seen):
 def get_all_devices():
     con = sqlite3.connect(DB_PATH)
     cur = con.cursor()
-    cur.execute("SELECT hostname, ip, mac, status, last_seen, friendly_name, device_type, is_zeph_client FROM devices")
+    cur.execute("SELECT hostname, ip, mac, status, last_seen, friendly_name, device_type FROM devices")
     rows = cur.fetchall()
     con.close()
-    return [{"hostname": r[0], "ip": r[1], "mac": r[2], "status": r[3], "last_seen": r[4], "friendly_name": r[5], "device_type": r[6], "is_zeph_client": bool(r[7])} for r in rows]
-
-def set_zeph_client(ip: str, value: bool):
-    con = sqlite3.connect(DB_PATH)
-    con.execute(
-        "UPDATE devices SET is_zeph_client = ? WHERE ip = ?",
-        (1 if value else 0, ip)
-    )
-    con.commit()
-    con.close()
-
-def get_zeph_clients() -> list:
-    con = sqlite3.connect(DB_PATH)
-    cur = con.cursor()
-    cur.execute(
-        "SELECT hostname, ip, mac, status, last_seen, friendly_name, device_type, is_zeph_client "
-        "FROM devices WHERE is_zeph_client = 1 AND status = 'online'"
-    )
-    rows = cur.fetchall()
-    con.close()
-    return [
-        {
-            "hostname": r[0], "ip": r[1], "mac": r[2],
-            "status": r[3], "last_seen": r[4],
-            "friendly_name": r[5], "device_type": r[6],
-            "is_zeph_client": bool(r[7])
-        }
-        for r in rows
-    ]
+    return [{"hostname": r[0], "ip": r[1], "mac": r[2], "status": r[3], "last_seen": r[4], "friendly_name": r[5], "device_type": r[6]} for r in rows]
 
 def update_device_meta(ip: str, friendly_name: str, device_type: str):
     con = sqlite3.connect(DB_PATH)
