@@ -154,6 +154,30 @@ async def notes_summarize():
     return {"status": "ok", "summary": summary}
 
 
+@app.post("/airdrop")
+async def airdrop(body: dict):
+    file = body.get("file", "")
+    target = body.get("target", "")
+    if not os.path.exists(file):
+        return {"error": "file not found"}, 400
+    try:
+        result = subprocess.run(
+            ["opendrop", "send", "-r", target, "-f", file],
+            capture_output=True, text=True, timeout=30
+        )
+        from db import insert_log
+        from datetime import datetime
+        now = datetime.now().strftime("%H:%M:%S")
+        insert_log(now, file, target, "ok", method="airdrop", endpoint="/airdrop", details=f"{file} → {target}")
+        if result.returncode != 0:
+            return {"error": result.stderr or "opendrop failed"}, 500
+        return {"status": "ok", "output": result.stdout, "target": target, "file": os.path.basename(file)}
+    except subprocess.TimeoutExpired:
+        return {"error": "opendrop timed out"}, 500
+    except Exception as e:
+        return {"error": str(e)}, 500
+
+
 @app.post("/command")
 async def command(body: dict):
     cmd     = body.get("command", "")

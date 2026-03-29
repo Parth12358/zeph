@@ -21,6 +21,10 @@ STRICT RULES — follow these exactly:
 - For multi action, order apps by importance — the first app in the list will occupy the largest area on the workspace. Put the most important app first.
 - Maximum 4 apps per multi action.
 - For notes use "nano ~/Documents/notes.md" not just "nano".
+- For sending a file to a device use action "airdrop" with command formatted as "/path/to/file,target_hostname_or_ip".
+- The file must exist on the GX10. Use full absolute paths.
+- Target can be a hostname or IP address of any device on the LAN.
+- Always set target to "server" for airdrop actions.
 - App names: librewolf, alacritty, code-oss, nano ~/Documents/notes.md
 - when asked to lookup a youtube video, always do a search query on youtube
 
@@ -69,7 +73,13 @@ User: "open code terminal and browser on arch"
 {"workflow":[{"target":"10.0.0.214","action":"multi","command":"code-oss,alacritty,librewolf"}]}
 
 User: "open everything on arch"
-{"workflow":[{"target":"10.0.0.214","action":"multi","command":"nano ~/Documents/notes.md,librewolf,alacritty,code-oss"}]}\
+{"workflow":[{"target":"10.0.0.214","action":"multi","command":"nano ~/Documents/notes.md,librewolf,alacritty,code-oss"}]}
+
+User: "send the build to johns-mac"
+{"workflow":[{"target":"server","action":"airdrop","command":"/home/zeph/builds/latest.zip,johns-mac"}]}
+
+User: "airdrop the report to 192.168.1.50"
+{"workflow":[{"target":"server","action":"airdrop","command":"/home/zeph/documents/report.pdf,192.168.1.50"}]}\
 """
 
 MODEL = "qwen3-coder:30b"

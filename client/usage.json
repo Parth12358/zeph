@@ -1,14 +1,14 @@
 {
   "apps": {
     "librewolf": {
-      "count": 39,
-      "last_opened": "2026-03-29 04:23:32",
+      "count": 42,
+      "last_opened": "2026-03-29 04:34:16",
       "workspaces": {
-        "5": 27,
+        "5": 29,
         "4": 8,
-        "6": 4
+        "6": 5
       },
-      "last_workspace": 5
+      "last_workspace": 6
     },
     "xdg-open": {
       "count": 1,
@@ -19,31 +19,31 @@
       "last_workspace": 4
     },
     "nano": {
-      "count": 7,
-      "last_opened": "2026-03-29 04:19:48",
-      "workspaces": {
-        "5": 5,
-        "6": 2
-      },
-      "last_workspace": 5
-    },
-    "code-oss": {
-      "count": 10,
-      "last_opened": "2026-03-29 04:19:48",
-      "workspaces": {
-        "5": 8,
-        "6": 2
-      },
-      "last_workspace": 5
-    },
-    "alacritty": {
-      "count": 8,
-      "last_opened": "2026-03-29 04:19:48",
+      "count": 9,
+      "last_opened": "2026-03-29 04:34:16",
       "workspaces": {
         "5": 6,
-        "6": 2
+        "6": 3
       },
-      "last_workspace": 5
+      "last_workspace": 6
+    },
+    "code-oss": {
+      "count": 12,
+      "last_opened": "2026-03-29 04:34:16",
+      "workspaces": {
+        "5": 9,
+        "6": 3
+      },
+      "last_workspace": 6
+    },
+    "alacritty": {
+      "count": 10,
+      "last_opened": "2026-03-29 04:34:16",
+      "workspaces": {
+        "5": 7,
+        "6": 3
+      },
+      "last_workspace": 6
     },
     "kitty": {
       "count": 2,
@@ -55,16 +55,16 @@
     }
   },
   "recent_workspaces": [
-    5,
-    5,
-    5,
-    5,
-    5,
-    5,
-    5,
     6,
     6,
-    6
+    6,
+    6,
+    5,
+    5,
+    5,
+    5,
+    5,
+    5
   ],
-  "last_updated": "2026-03-29 04:23:32"
+  "last_updated": "2026-03-29 04:34:16"
 }

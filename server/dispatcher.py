@@ -51,10 +51,25 @@ async def dispatch_one(
         except Exception as exc:
             return {"target": ip, "action": action, "command": command, "status": "error", "output": None, "error": str(exc)}
 
+    if action == "airdrop":
+        parts = command.split(",", 1)
+        file_path = parts[0].strip()
+        target = parts[1].strip() if len(parts) > 1 else ip
+        url = "http://localhost:8000/airdrop"
+        payload = {"file": file_path, "target": target}
+        timeout = aiohttp.ClientTimeout(total=35)
+        try:
+            async with session.post(url, json=payload, timeout=timeout) as resp:
+                output = await resp.text()
+                return {"target": ip, "action": action, "command": command, "status": "ok", "output": output, "error": None}
+        except asyncio.TimeoutError:
+            return {"target": ip, "action": action, "command": command, "status": "error", "output": None, "error": "timeout"}
+        except Exception as exc:
+            return {"target": ip, "action": action, "command": command, "status": "error", "output": None, "error": str(exc)}
+
     action_map = {
         "bash":     (f"http://{ip}:5000/bash",     {"command": command}),
         "hyprctl":  (f"http://{ip}:5000/dispatch",  {"command": command}),
-        "airdrop":  (f"http://{ip}:5000/airdrop",   {"file": command}),
         "notes":    (f"http://{ip}:5000/notes",     {"text": command}),
         "multi":    (f"http://{ip}:5000/multi",     {"command": command}),
     }
