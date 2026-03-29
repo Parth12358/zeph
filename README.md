@@ -198,7 +198,7 @@ Dashboard dev server runs on `http://localhost:5173`.
 
 ---
 
-## Zeph — TODO
+# Zeph — TODO
 
 ---
 
@@ -301,12 +301,9 @@ Dashboard dev server runs on `http://localhost:5173`.
 
 ---
 
-## Phase 4 — OpenDrop / AirDrop File Distribution
+## Phase 4 — OpenDrop / AirDrop File Distribution ❌ SCRAPPED
 
-- [ ] Add `POST /airdrop` endpoint to `main.py`
-- [ ] Calls OpenDrop CLI via subprocess
-- [ ] Wire `action: "airdrop"` in dispatcher
-- [ ] Test file send to iPhone
+OpenDrop not viable — AWDL/pkg_resources dependency issues, too fragile for hackathon demo.
 
 ---
 

@@ -2,6 +2,11 @@ import json
 import subprocess
 from datetime import datetime
 
+ALACRITTY_WRAP = {
+    "nano", "btop", "lazygit", "lazydocker", "yazi",
+    "zellij", "pgcli", "taskwarrior", "helix"
+}
+
 
 def log(message):
     timestamp = datetime.now().strftime("%H:%M:%S")
@@ -78,7 +83,7 @@ def open_multi(apps: list):
         args = app.strip().split()
         if args[0] == "librewolf" and "--new-window" not in args:
             args.insert(1, "--new-window")
-        if args[0] == "nano":
+        if args[0] in ALACRITTY_WRAP:
             args = ["alacritty", "-e"] + args
         subprocess.Popen(args)
         time.sleep(0.5)

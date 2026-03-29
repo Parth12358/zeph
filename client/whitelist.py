@@ -16,3 +16,14 @@ BASH_PREFIXES = {
     "librewolf",
     "xdg-open",
 }
+
+MULTI_ALLOWED = {
+    # existing
+    "librewolf", "kitty", "alacritty", "nano", "code-oss", "xdg-open",
+    # editors
+    "helix",
+    # TUI tools (auto wrapped in alacritty)
+    "btop", "lazygit", "lazydocker", "yazi", "zellij", "pgcli", "taskwarrior",
+    # GUI
+    "mpv", "wayvnc", "wlogout", "pdfpc", "grim",
+}
