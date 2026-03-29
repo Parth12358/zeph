@@ -25,9 +25,7 @@ MULTI_ALLOWED = {
     # editors
     "helix",
     # TUI tools (auto wrapped in alacritty)
-    "btop", "lazygit", "lazydocker", "yazi", "zellij", "pgcli", "taskwarrior",
+    "btop", "lazygit", "lazydocker", "yazi", "zellij", "pgcli", "taskwarrior", "opencode",
     # GUI
     "mpv", "wayvnc", "wlogout", "pdfpc", "grim",
-    # AI coding
-    "opencode",
 }

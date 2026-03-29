@@ -29,7 +29,7 @@ STRICT RULES — follow these exactly:
 - when asked to lookup a youtube video, always do a search query on youtube
 - Available apps for multi action: librewolf, kitty, code-oss, helix, btop, lazygit, lazydocker, yazi, zellij, pgcli, taskwarrior, mpv, pdfpc, grim, nano ~/Documents/notes.md, opencode
 - To open OpenCode use app name "opencode" in a multi action — never interact with it programmatically.
-- TUI apps (btop, lazygit, lazydocker, yazi, zellij, pgcli, taskwarrior, helix) open in alacritty automatically — just use the app name
+- TUI apps (btop, lazygit, lazydocker, yazi, zellij, pgcli, taskwarrior, helix, opencode) open in alacritty automatically — just use the app name
 - Always use "nano ~/Documents/notes.md" not just "nano"
 - Always put the most important app first in multi commands
 - For named setups (studying, dev, morning, presentation, standup) always use multi action with appropriate app combo
