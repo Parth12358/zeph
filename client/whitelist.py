@@ -23,7 +23,7 @@ MULTI_ALLOWED = {
     # existing
     "librewolf", "kitty", "alacritty", "nano", "code-oss", "xdg-open",
     # editors
-    "helix",
+    "hx",
     # TUI tools (auto wrapped in alacritty)
     "btop", "lazygit", "lazydocker", "yazi", "zellij", "pgcli", "taskwarrior", "opencode",
     # GUI
