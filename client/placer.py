@@ -4,7 +4,7 @@ from datetime import datetime
 
 ALACRITTY_WRAP = {
     "nano", "btop", "lazygit", "lazydocker", "yazi",
-    "zellij", "pgcli", "taskwarrior", "hx", "opencode"
+    "zellij", "pgcli", "taskwarrior", "opencode"
 }
 
 

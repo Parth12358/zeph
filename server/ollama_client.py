@@ -27,14 +27,14 @@ STRICT RULES — follow these exactly:
 - Always set target to "server" for airdrop actions.
 - App names: librewolf, alacritty, code-oss, nano ~/Documents/notes.md
 - when asked to lookup a youtube video, always do a search query on youtube
-- Available apps for multi action: librewolf, kitty, code-oss, hx, btop, lazygit, lazydocker, yazi, zellij, pgcli, taskwarrior, mpv, pdfpc, grim, nano ~/Documents/notes.md, opencode
+- Available apps for multi action: librewolf, kitty, code-oss, btop, lazygit, lazydocker, yazi, zellij, pgcli, taskwarrior, mpv, pdfpc, grim, nano ~/Documents/notes.md, opencode
 - To open OpenCode use app name "opencode" in a multi action — never interact with it programmatically.
-- TUI apps (btop, lazygit, lazydocker, yazi, zellij, pgcli, taskwarrior, hx, opencode) open in alacritty automatically — just use the app name
+- TUI apps (btop, lazygit, lazydocker, yazi, zellij, pgcli, taskwarrior, opencode) open in alacritty automatically — just use the app name
 - Always use "nano ~/Documents/notes.md" not just "nano"
 - Always put the most important app first in multi commands
 - For named setups (studying, dev, morning, presentation, standup) always use multi action with appropriate app combo
 - For multi-step workflows, chain multiple workflow items — open apps first, then run bash commands if needed
-- For any setup involving coding always include hx or code-oss as the first app
+- For any setup involving coding always include code-oss as the first app
 - For any setup involving research or browsing always include librewolf as the first app
 - You are not limited to the preset examples. Use any combination of available apps that makes sense for the user's request.
 - If the user describes a vibe or context ("chill setup", "focus mode", "hackathon mode"), infer the best app combo yourself.
@@ -96,10 +96,10 @@ User: "airdrop the report to 192.168.1.50"
 {"workflow":[{"target":"server","action":"airdrop","command":"/home/zeph/documents/report.pdf,192.168.1.50"}]}
 
 User: "set up for studying"
-{"workflow":[{"target":"10.0.0.214","action":"multi","command":"librewolf,hx,nano ~/Documents/notes.md"}]}
+{"workflow":[{"target":"10.0.0.214","action":"multi","command":"librewolf,nano ~/Documents/notes.md,kitty"}]}
 
 User: "set up for dev"
-{"workflow":[{"target":"10.0.0.214","action":"multi","command":"hx,kitty,lazygit"}]}
+{"workflow":[{"target":"10.0.0.214","action":"multi","command":"code-oss,kitty,lazygit"}]}
 
 User: "morning setup"
 {"workflow":[{"target":"10.0.0.214","action":"multi","command":"btop,librewolf,taskwarrior"}]}
@@ -108,7 +108,7 @@ User: "presentation mode"
 {"workflow":[{"target":"10.0.0.214","action":"multi","command":"pdfpc,librewolf"},{"target":"10.0.0.214","action":"hyprctl","command":"workspace 1"}]}
 
 User: "enterprise standup setup"
-{"workflow":[{"target":"10.0.0.214","action":"multi","command":"librewolf,hx,kitty"},{"target":"10.0.0.214","action":"bash","command":"cd ~/work && git pull origin main"}]}
+{"workflow":[{"target":"10.0.0.214","action":"multi","command":"librewolf,code-oss,kitty"},{"target":"10.0.0.214","action":"bash","command":"cd ~/work && git pull origin main"}]}
 
 User: "show me what's running"
 {"workflow":[{"target":"10.0.0.214","action":"multi","command":"btop,lazydocker"}]}
@@ -123,7 +123,7 @@ User: "open git"
 {"workflow":[{"target":"10.0.0.214","action":"multi","command":"lazygit"}]}
 
 User: "database setup"
-{"workflow":[{"target":"10.0.0.214","action":"multi","command":"pgcli,hx,kitty"}]}
+{"workflow":[{"target":"10.0.0.214","action":"multi","command":"pgcli,code-oss,kitty"}]}
 
 User: "open task manager"
 {"workflow":[{"target":"10.0.0.214","action":"multi","command":"taskwarrior,nano ~/Documents/notes.md"}]}
@@ -132,19 +132,19 @@ User: "media setup"
 {"workflow":[{"target":"10.0.0.214","action":"multi","command":"mpv,yazi"}]}
 
 User: "hackathon mode"
-{"workflow":[{"target":"10.0.0.214","action":"multi","command":"hx,kitty,lazygit"},{"target":"10.0.0.214","action":"bash","command":"cd ~/work && git pull origin main"}]}
+{"workflow":[{"target":"10.0.0.214","action":"multi","command":"code-oss,kitty,lazygit"},{"target":"10.0.0.214","action":"bash","command":"cd ~/work && git pull origin main"}]}
 
 User: "focus mode"
-{"workflow":[{"target":"10.0.0.214","action":"multi","command":"hx,nano ~/Documents/notes.md"}]}
+{"workflow":[{"target":"10.0.0.214","action":"multi","command":"code-oss,nano ~/Documents/notes.md"}]}
 
 User: "studying but with docker"
-{"workflow":[{"target":"10.0.0.214","action":"multi","command":"librewolf,hx,lazydocker"}]}
+{"workflow":[{"target":"10.0.0.214","action":"multi","command":"librewolf,lazydocker,kitty"}]}
 
 User: "open opencode on arch"
 {"workflow":[{"target":"10.0.0.214","action":"multi","command":"opencode"}]}
 
 User: "dev setup with opencode"
-{"workflow":[{"target":"10.0.0.214","action":"multi","command":"opencode,hx,kitty"}]}\
+{"workflow":[{"target":"10.0.0.214","action":"multi","command":"opencode,kitty"}]}\
 """
 
 MODEL = "qwen3-coder:30b"
