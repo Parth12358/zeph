@@ -27,7 +27,8 @@ STRICT RULES — follow these exactly:
 - Always set target to "server" for airdrop actions.
 - App names: librewolf, alacritty, code-oss, nano ~/Documents/notes.md
 - when asked to lookup a youtube video, always do a search query on youtube
-- Available apps for multi action: librewolf, kitty, code-oss, helix, btop, lazygit, lazydocker, yazi, zellij, pgcli, taskwarrior, mpv, pdfpc, grim, nano ~/Documents/notes.md
+- Available apps for multi action: librewolf, kitty, code-oss, helix, btop, lazygit, lazydocker, yazi, zellij, pgcli, taskwarrior, mpv, pdfpc, grim, nano ~/Documents/notes.md, opencode
+- To open OpenCode use app name "opencode" in a multi action — never interact with it programmatically.
 - TUI apps (btop, lazygit, lazydocker, yazi, zellij, pgcli, taskwarrior, helix) open in alacritty automatically — just use the app name
 - Always use "nano ~/Documents/notes.md" not just "nano"
 - Always put the most important app first in multi commands
@@ -137,7 +138,13 @@ User: "focus mode"
 {"workflow":[{"target":"10.0.0.214","action":"multi","command":"helix,nano ~/Documents/notes.md"}]}
 
 User: "studying but with docker"
-{"workflow":[{"target":"10.0.0.214","action":"multi","command":"librewolf,helix,lazydocker"}]}\
+{"workflow":[{"target":"10.0.0.214","action":"multi","command":"librewolf,helix,lazydocker"}]}
+
+User: "open opencode on arch"
+{"workflow":[{"target":"10.0.0.214","action":"multi","command":"opencode"}]}
+
+User: "dev setup with opencode"
+{"workflow":[{"target":"10.0.0.214","action":"multi","command":"opencode,helix,kitty"}]}\
 """
 
 MODEL = "qwen3-coder:30b"

@@ -1,14 +1,14 @@
 {
   "apps": {
     "librewolf": {
-      "count": 42,
-      "last_opened": "2026-03-29 04:34:16",
+      "count": 43,
+      "last_opened": "2026-03-29 06:25:08",
       "workspaces": {
         "5": 29,
-        "4": 8,
+        "4": 9,
         "6": 5
       },
-      "last_workspace": 6
+      "last_workspace": 4
     },
     "xdg-open": {
       "count": 1,
@@ -37,34 +37,52 @@
       "last_workspace": 6
     },
     "alacritty": {
-      "count": 10,
-      "last_opened": "2026-03-29 04:34:16",
+      "count": 11,
+      "last_opened": "2026-03-29 06:25:08",
       "workspaces": {
         "5": 7,
-        "6": 3
+        "6": 3,
+        "4": 1
       },
-      "last_workspace": 6
+      "last_workspace": 4
     },
     "kitty": {
-      "count": 2,
-      "last_opened": "2026-03-29 03:12:27",
+      "count": 3,
+      "last_opened": "2026-03-29 06:25:23",
       "workspaces": {
-        "5": 1
+        "5": 1,
+        "4": 1
       },
-      "last_workspace": 5
+      "last_workspace": 4
+    },
+    "helix": {
+      "count": 1,
+      "last_opened": "2026-03-29 06:25:23",
+      "workspaces": {
+        "4": 1
+      },
+      "last_workspace": 4
+    },
+    "lazygit": {
+      "count": 1,
+      "last_opened": "2026-03-29 06:25:23",
+      "workspaces": {
+        "4": 1
+      },
+      "last_workspace": 4
     }
   },
   "recent_workspaces": [
+    4,
+    4,
+    4,
+    4,
+    4,
     6,
     6,
     6,
     6,
-    5,
-    5,
-    5,
-    5,
-    5,
     5
   ],
-  "last_updated": "2026-03-29 04:34:16"
+  "last_updated": "2026-03-29 06:25:23"
 }

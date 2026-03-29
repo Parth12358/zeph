@@ -5,7 +5,7 @@ import time
 from datetime import datetime
 from flask import Flask, request, jsonify
 from placer import get_best_workspace, open_multi
-from whitelist import HYPRCTL_DISPATCH, BASH_PREFIXES
+from whitelist import HYPRCTL_DISPATCH, BASH_PREFIXES, MULTI_ALLOWED
 from tracker import record_open, record_placement, get_context
 from notes import append_note, read_notes, get_machine_name
 
@@ -97,8 +97,6 @@ def dispatch():
         log(f"[dispatch] Status: error ({e})")
         return jsonify({"status": "error", "error": str(e)})
 
-
-MULTI_ALLOWED = {"librewolf", "alacritty", "kitty", "nano", "code-oss", "xdg-open"}
 
 
 @app.route("/multi", methods=["POST"])

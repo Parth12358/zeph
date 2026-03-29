@@ -15,6 +15,8 @@ HYPRCTL_DISPATCH = {
 BASH_PREFIXES = {
     "librewolf",
     "xdg-open",
+    "git",
+    "cd",
 }
 
 MULTI_ALLOWED = {
@@ -26,4 +28,6 @@ MULTI_ALLOWED = {
     "btop", "lazygit", "lazydocker", "yazi", "zellij", "pgcli", "taskwarrior",
     # GUI
     "mpv", "wayvnc", "wlogout", "pdfpc", "grim",
+    # AI coding
+    "opencode",
 }
