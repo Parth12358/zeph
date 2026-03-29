@@ -43,6 +43,7 @@ async def dispatch_one(
         "bash":     (f"http://{ip}:5000/bash",     {"command": command}),
         "hyprctl":  (f"http://{ip}:5000/dispatch",  {"command": command}),
         "airdrop":  (f"http://{ip}:5000/airdrop",   {"file": command}),
+        "notes":    (f"http://{ip}:5000/notes",     {"text": command}),
     }
 
     if action not in action_map:
@@ -99,7 +100,7 @@ async def dispatch_workflow(workflow: list) -> list:
         )
 
     now = datetime.now().strftime("%H:%M:%S")
-    endpoint_map = {"bash": "/bash", "hyprctl": "/dispatch", "airdrop": "/airdrop", "gpio": "/gpio"}
+    endpoint_map = {"bash": "/bash", "hyprctl": "/dispatch", "airdrop": "/airdrop", "gpio": "/gpio", "notes": "/notes"}
     for r in results:
         endpoint = endpoint_map.get(r["action"], "/dispatch")
         details = r.get("output") or r.get("error") or ""
